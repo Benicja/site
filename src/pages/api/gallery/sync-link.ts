@@ -95,7 +95,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const albumUrlId = urlParts.pop()?.split('?')[0] || Date.now().toString();
 
     // 5. Upsert Album
-    const { data: album, error: albumError } = await supabaseAdmin
+    const { error: albumError } = await supabaseAdmin
       .from('gallery_albums')
       .upsert({
         google_album_id: albumUrlId,
@@ -104,9 +104,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         album_url: url,
         photo_count: uniqueBaseUrls.length,
         updated_at: new Date().toISOString()
-      }, { onConflict: 'google_album_id' })
-      .select()
-      .single();
+      }, { onConflict: 'google_album_id' });
 
     if (albumError) throw albumError;
 

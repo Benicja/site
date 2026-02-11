@@ -3,14 +3,14 @@ export const prerender = false;
 
 import Layout from '../../layouts/Layout.astro';
 import { SESSION_COOKIE, getUserFromSession, isUserAdmin, getSiteConfig } from '../../lib/auth';
-import { getAlbums } from '../../lib/gallery';
+import { getAlbums, type Album } from '../../lib/gallery';
 
 // Check if user is authenticated
 let user = null;
 let isAdmin = false;
 let siteConfig = null;
-let albums = [];
-let error = null;
+let albums: Album[] = [];
+let error = '';
 
 try {
   const sessionId = Astro.cookies.get(SESSION_COOKIE)?.value;
@@ -22,10 +22,8 @@ try {
   albums = user ? await getAlbums() : [];
 } catch (e) {
   console.error('Gallery page error:', e);
-  error = e.message;
+  error = e instanceof Error ? e.message : 'Unknown error occurred';
 }
-
-const photosLinked = !!siteConfig?.photos_refresh_token;
 
 // Helper to format date from title or created_at
 function getDisplayDate(album: any) {

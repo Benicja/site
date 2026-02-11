@@ -41,7 +41,6 @@ export const GET: APIRoute = async ({ cookies, redirect }) => {
     });
     
     // 4. Create URL with special Photo Scopes + Force Refresh Token
-    const google = getGoogleClient();
     const scopes = [
         'openid', 
         'profile', 

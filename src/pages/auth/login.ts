@@ -30,7 +30,7 @@ export const GET: APIRoute = async ({ cookies, redirect, url }) => {
     const scopes = ['openid', 'profile', 'email'];
     
     // Use the library to create the URL (fixes the PKCE/Security handshake)
-    const authorizationUrl = await google.createAuthorizationURL(state, codeVerifier, scopes);
+    const authorizationUrl = google.createAuthorizationURL(state, codeVerifier, scopes);
     
     return redirect(authorizationUrl.toString());
   } catch (error) {
