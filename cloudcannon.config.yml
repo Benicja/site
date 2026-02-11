@@ -17,7 +17,7 @@ collections_config:
 
 # Editor interface settings
 editor:
-  default_path: /content/recipes/
+  default_path: /src/recipes/
 
 # Data file configuration for gallery settings
 data_config:
