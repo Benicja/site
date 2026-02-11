@@ -1,11 +1,11 @@
 # Benicja's Kitchen - Family Recipes & Gallery
 
-A beautiful, family-focused website built with Astro and CloudCannon, featuring a recipe collection and private photo gallery synced with Google Photos.
+A beautiful, family-focused website built with Astro, featuring a recipe collection and private photo gallery synced with Google Photos.
 
 ## 🌟 Features
 
 ### Recipe Collection
-- **CloudCannon CMS Integration**: Easy recipe management through a beautiful admin interface
+- **Git-Based Content Management**: Edit recipes directly in markdown files
 - **Structured Recipe Data**: Ingredients, instructions, timing, difficulty, and tags
 - **Responsive Design**: Beautiful recipe cards and detailed recipe pages
 - **Search & Filter**: Find recipes by category, tags, and difficulty
@@ -20,7 +20,7 @@ A beautiful, family-focused website built with Astro and CloudCannon, featuring 
 
 - **Frontend**: [Astro](https://astro.build/) with React components
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **CMS**: [CloudCannon](https://cloudcannon.com/) for recipe management
+- **Content**: Markdown files with frontmatter
 - **Authentication**: Google OAuth (planned)
 - **Database**: Supabase for user permissions (planned)
 - **Deployment**: Netlify
@@ -30,7 +30,6 @@ A beautiful, family-focused website built with Astro and CloudCannon, featuring 
 
 ### Prerequisites
 - Node.js 18+ and npm
-- CloudCannon account (for content management)
 
 ### Local Development
 
@@ -49,29 +48,8 @@ A beautiful, family-focused website built with Astro and CloudCannon, featuring 
 3. **Open your browser:**
    Visit [http://localhost:4321](http://localhost:4321)
 
-### CloudCannon Setup
-
-1. **Connect to CloudCannon:**
-   - Push your code to GitHub
-   - Connect the repository to CloudCannon
-   - CloudCannon will automatically detect the `cloudcannon.config.yml`
-
-2. **Add recipes:**
-   - Go to your CloudCannon dashboard
-   - Navigate to the "Recipes" collection
-   - Click "Add Recipe" to create new entries
-
 ## 📝 Adding Recipes
 
-### Through CloudCannon (Recommended)
-Use the CloudCannon admin interface for the best editing experience with:
-- Visual recipe builder
-- Image uploads
-- Ingredient and instruction arrays
-- Tag management
-- Live previews
-
-### Manual Addition
 Create a new `.md` file in `src/content/recipes/` with the following structure:
 
 ```yaml
@@ -119,10 +97,10 @@ src/
 
 ### ✅ Phase 1: Foundation (Complete)
 - [x] Astro project setup with Tailwind CSS
-- [x] CloudCannon configuration and integration
 - [x] Recipe content schema and components
 - [x] Responsive recipe pages
 - [x] Sample recipe content
+- [x] Netlify deployment configured
 
 ### 🔄 Phase 2: Gallery & Authentication (In Progress)
 - [ ] Google OAuth integration
@@ -163,7 +141,7 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ### Recipes
 - **Public access**: Anyone can view recipes
-- **Content management**: Only authorized users can edit via CloudCannon
+- **Content management**: Managed through Git and markdown files
 
 ### Gallery (When implemented)
 - **Private access**: Google authentication required
@@ -184,4 +162,4 @@ This project is private and built for personal family use.
 
 ---
 
-Made with ❤️ for family, powered by [Astro](https://astro.build/) and [CloudCannon](https://cloudcannon.com/)
+Made with ❤️ for family, powered by [Astro](https://astro.build/)

@@ -1,12 +1,12 @@
 # Benicja's Kitchen - Development Instructions
 
 ## Project Overview
-This is a personal family website built with Astro, featuring a recipe collection managed through CloudCannon CMS and a planned private photo gallery synced with Google Photos.
+This is a personal family website built with Astro, featuring a recipe collection and a planned private photo gallery synced with Google Photos.
 
 ## Tech Stack
 - **Frontend:** Astro with React components 
 - **Styling:** Tailwind CSS
-- **CMS:** CloudCannon for recipe management
+- **Content:** Markdown files with frontmatter
 - **Authentication:** Google OAuth (planned)
 - **Database:** Supabase for user permissions (planned)
 - **Deployment:** Netlify
@@ -19,10 +19,10 @@ This is a personal family website built with Astro, featuring a recipe collectio
 ## Current Status
 ✅ **Completed:**
 - Basic Astro project setup with Tailwind CSS
-- CloudCannon configuration and integration  
 - Recipe content schema and components
 - Responsive recipe pages with sample content
 - Homepage and navigation structure
+- Netlify deployment configuration
 
 🔄 **In Progress:**
 - Gallery page placeholder (coming soon section)
@@ -55,7 +55,7 @@ src/
 ```
 
 ## Content Management
-- **Recipes:** Managed through CloudCannon CMS interface
+- **Recipes:** Managed through Git and markdown files
 - **Recipe Schema:** Includes title, description, ingredients, instructions, timing, difficulty, tags
 - **Manual Addition:** Create `.md` files in `src/content/recipes/` with proper frontmatter
 
@@ -78,16 +78,9 @@ src/
 
 ## Development Guidelines
 - All recipe content uses structured data (frontmatter)
-- Components designed for CloudCannon compatibility from day one
 - Cost-optimized architecture targeting free tier services
 - GDPR-compliant email-only data storage
 - Mobile-first responsive design
-
-## CloudCannon Integration
-- Configuration: `cloudcannon.config.yml`
-- Recipe editing through visual CMS interface
-- Automatic site rebuilds on content changes
-- Image uploads and management through CloudCannon
 
 ## Deployment
 - **Primary:** Netlify (free tier)
@@ -98,4 +91,4 @@ src/
 ## Family Access
 - **Recipes:** Public access for viewing
 - **Gallery:** Private access with Google authentication (planned)
-- **Content Management:** CloudCannon admin access only
+- **Content Management:** Direct Git/file editing
