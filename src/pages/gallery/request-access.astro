@@ -1,0 +1,165 @@
+---
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+
+// Get email from query params if provided
+const email = Astro.url.searchParams.get('email') || '';
+---
+
+<Layout title="Request Gallery Access" description="Request access to the family photo gallery">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center mb-8">
+      <div class="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-10 h-10 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-3">Request Gallery Access</h1>
+      <p class="text-lg text-gray-600">
+        This gallery is private. Submit your request and we'll get back to you soon.
+      </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border p-8">
+      <form id="accessRequestForm" class="space-y-6">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+            Email Address *
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            value={email}
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            placeholder="your.email@gmail.com"
+          />
+        </div>
+
+        <div>
+          <label for="fullName" class="block text-sm font-medium text-gray-700 mb-2">
+            Full Name *
+          </label>
+          <input
+            type="text"
+            id="fullName"
+            name="fullName"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            placeholder="John Smith"
+          />
+        </div>
+
+        <div>
+          <label for="message" class="block text-sm font-medium text-gray-700 mb-2">
+            Message (Optional)
+          </label>
+          <textarea
+            id="message"
+            name="message"
+            rows="4"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            placeholder="Tell us how you're related to the family or why you'd like access..."
+          ></textarea>
+        </div>
+
+        <div class="flex items-start">
+          <div class="flex items-center h-5">
+            <input
+              id="privacy"
+              name="privacy"
+              type="checkbox"
+              required
+              class="w-4 h-4 border border-gray-300 rounded text-primary-600 focus:ring-primary-500"
+            />
+          </div>
+          <label for="privacy" class="ml-3 text-sm text-gray-600">
+            I understand that access is restricted to family members and authorized individuals only *
+          </label>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full py-3 px-6 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors focus:ring-4 focus:ring-primary-200"
+        >
+          Submit Request
+        </button>
+      </form>
+
+      <div id="successMessage" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+        <div class="flex items-start gap-3">
+          <svg class="w-6 h-6 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h3 class="font-semibold text-green-900 mb-1">Request Submitted!</h3>
+            <p class="text-sm text-green-800">
+              We've received your access request. You'll receive an email once it's been reviewed.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div id="errorMessage" class="hidden mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div class="flex items-start gap-3">
+          <svg class="w-6 h-6 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h3 class="font-semibold text-red-900 mb-1">Error</h3>
+            <p class="text-sm text-red-800" id="errorText"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-8">
+      <a href="/gallery" class="text-primary-600 hover:text-primary-700 font-medium">
+        ← Back to Gallery
+      </a>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const form = document.getElementById('accessRequestForm') as HTMLFormElement;
+  const successMessage = document.getElementById('successMessage');
+  const errorMessage = document.getElementById('errorMessage');
+  const errorText = document.getElementById('errorText');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(form);
+    const data = {
+      email: formData.get('email'),
+      fullName: formData.get('fullName'),
+      message: formData.get('message') || ''
+    };
+
+    try {
+      const response = await fetch('/api/request-access', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        form.style.display = 'none';
+        successMessage?.classList.remove('hidden');
+      } else {
+        errorMessage?.classList.remove('hidden');
+        if (errorText) errorText.textContent = result.error || 'Failed to submit request';
+      }
+    } catch (error) {
+      errorMessage?.classList.remove('hidden');
+      if (errorText) errorText.textContent = 'Network error. Please try again later.';
+    }
+  });
+</script>

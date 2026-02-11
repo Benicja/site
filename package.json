@@ -11,9 +11,12 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.9.3",
+    "@astrojs/netlify": "^6.6.4",
     "@astrojs/react": "^4.4.2",
     "@astrojs/tailwind": "^5.1.1",
-    "astro": "^4.15.9",
+    "@supabase/supabase-js": "^2.95.3",
+    "arctic": "^3.7.0",
+    "astro": "^5.17.1",
     "decap-cms-app": "^3.10.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

@@ -1,10 +1,13 @@
 ---
+import { SESSION_COOKIE } from '../lib/auth';
+
 interface Props {
   title: string;
   description?: string;
 }
 
 const { title, description = "Benicja's Family Gallery & Recipes" } = Astro.props;
+const hasSession = Astro.cookies.has(SESSION_COOKIE);
 ---
 
 <!doctype html>
@@ -36,6 +39,11 @@ const { title, description = "Benicja's Family Gallery & Recipes" } = Astro.prop
             <a href="/gallery" class="text-gray-700 hover:text-primary-600 transition-colors">
               Gallery
             </a>
+            {hasSession && (
+              <a href="/auth/logout" class="text-red-600 hover:text-red-700 font-medium transition-colors">
+                Logout
+              </a>
+            )}
           </div>
         </div>
       </nav>

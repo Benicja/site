@@ -1,0 +1,125 @@
+---
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+import { SESSION_COOKIE, getUserFromSession } from '../../lib/auth';
+import { getAlbumById, getPhotosByAlbumId } from '../../lib/gallery';
+
+const { albumId } = Astro.params;
+
+// Check authentication
+const sessionId = Astro.cookies.get(SESSION_COOKIE)?.value;
+const user = sessionId ? await getUserFromSession(sessionId) : null;
+
+if (!user) {
+  return Astro.redirect('/gallery');
+}
+
+if (!albumId) {
+  return Astro.redirect('/gallery');
+}
+
+const album = await getAlbumById(albumId);
+const photos = await getPhotosByAlbumId(albumId);
+
+if (!album) {
+  return Astro.redirect('/gallery');
+}
+
+// Helper to format date
+function getDisplayDate(albumTitle: string, createdAt: string) {
+  const dateMatch = albumTitle.match(/^(\d{2})\/(\d{2})/);
+  if (dateMatch) {
+    const year = 2000 + parseInt(dateMatch[1]);
+    const month = parseInt(dateMatch[2]) - 1;
+    return new Date(year, month).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  }
+  return new Date(createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// Helper to clean title
+function getDisplayTitle(title: string) {
+  return title.replace(/^\d{2}\/\d{2}\s*-\s*/, '').trim();
+}
+---
+
+<Layout title={`${getDisplayTitle(album.title)} - Gallery`} description={`View photos from ${getDisplayTitle(album.title)}`}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Breadcrumbs -->
+    <nav class="flex mb-8 text-sm font-medium text-gray-500" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+          <a href="/gallery" class="hover:text-primary-600 transition-colors">Gallery</a>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="ml-1 md:ml-2 text-gray-900">{getDisplayTitle(album.title)}</span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-12">
+      {album.cover_image_url && (
+        <div class="w-full h-64 md:h-96 rounded-3xl overflow-hidden mb-8 shadow-lg">
+          <img 
+            src={`${album.cover_image_url}=w1600`} 
+            alt={getDisplayTitle(album.title)}
+            class="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      <h1 class="text-4xl font-bold text-gray-900 mb-2">{getDisplayTitle(album.title)}</h1>
+      <p class="text-gray-600">
+        {photos.length} photos • {getDisplayDate(album.title, album.created_at)}
+      </p>
+    </div>
+
+    <!-- Photo Grid -->
+    <div class="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
+      {photos.map((photo) => (
+        <div class="break-inside-avoid rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-gray-100 min-h-[100px]">
+          <a 
+            href={`${photo.image_url}=w2048`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="block group relative"
+          >
+            <img 
+              src={`${photo.image_url}=w800`} 
+              alt="Family moment"
+              class="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+          </a>
+        </div>
+      ))}
+    </div>
+
+    <!-- Back to Top / Navigation -->
+    <div class="mt-16 text-center">
+      <a 
+        href="/gallery" 
+        class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 shadow-sm transition-colors"
+      >
+        Back to All Albums
+      </a>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  /* Optional: Smooth fade-in for images */
+  img {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+</style>
