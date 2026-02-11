@@ -5,6 +5,13 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Admin access - serve the CMS
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/index.html"
+  status = 200
+
+# SPA fallback for other routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
