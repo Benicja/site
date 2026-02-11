@@ -10,7 +10,7 @@ build:
 # Collection configuration
 collections_config:
   recipes:
-    path: src/content/recipes
+    path: content/recipes
     name: Recipes
     icon: restaurant_menu
     description: Manage your cooking and baking recipes
@@ -112,7 +112,7 @@ _defaults:
 
 # Editor interface settings
 editor:
-  default_path: /src/content/recipes/
+  default_path: /content/recipes/
 
 # Data file configuration for gallery settings
 data_config:
