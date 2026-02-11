@@ -9,13 +9,21 @@
 <body>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   <script>
-    // Redirect to /admin after login
     if (window.netlifyIdentity) {
-      window.netlifyIdentity.on("init", user => {
+      // Redirect to admin after login
+      window.netlifyIdentity.on("init", function(user) {
         if (!user) {
-          window.netlifyIdentity.on("login", () => {
+          window.netlifyIdentity.on("login", function() {
             document.location.href = "/admin/";
           });
+        }
+      });
+      
+      // Handle invite, recovery, and confirmation tokens
+      window.netlifyIdentity.on("init", function() {
+        var hash = window.location.hash;
+        if (hash && (hash.indexOf("#invite_token=") !== -1 || hash.indexOf("#recovery_token=") !== -1 || hash.indexOf("#confirmation_token=") !== -1)) {
+          window.netlifyIdentity.open();
         }
       });
     }

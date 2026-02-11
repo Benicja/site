@@ -62,6 +62,14 @@ const { title, description = "Benicja's Family Gallery & Recipes" } = Astro.prop
             });
           }
         });
+        
+        // Handle invite and recovery tokens
+        window.netlifyIdentity.on("init", function() {
+          var hash = window.location.hash;
+          if (hash && (hash.indexOf("#invite_token=") !== -1 || hash.indexOf("#recovery_token=") !== -1 || hash.indexOf("#confirmation_token=") !== -1)) {
+            window.netlifyIdentity.open();
+          }
+        });
       }
     </script>
   </body>
