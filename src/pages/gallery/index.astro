@@ -6,15 +6,26 @@ import { SESSION_COOKIE, getUserFromSession, isUserAdmin, getSiteConfig } from '
 import { getAlbums } from '../lib/gallery';
 
 // Check if user is authenticated
-const sessionId = Astro.cookies.get(SESSION_COOKIE)?.value;
-const user = sessionId ? await getUserFromSession(sessionId) : null;
-const isAdmin = sessionId ? await isUserAdmin(sessionId) : false;
-const siteConfig = await getSiteConfig();
+let user = null;
+let isAdmin = false;
+let siteConfig = null;
+let albums = [];
+let error = null;
+
+try {
+  const sessionId = Astro.cookies.get(SESSION_COOKIE)?.value;
+  user = sessionId ? await getUserFromSession(sessionId) : null;
+  isAdmin = sessionId ? await isUserAdmin(sessionId) : false;
+  siteConfig = await getSiteConfig();
+  
+  // Fetch albums from Supabase
+  albums = user ? await getAlbums() : [];
+} catch (e) {
+  console.error('Gallery page error:', e);
+  error = e.message;
+}
 
 const photosLinked = !!siteConfig?.photos_refresh_token;
-
-// Fetch albums from Supabase
-const albums = user ? await getAlbums() : [];
 
 // Helper to format date from title or created_at
 function getDisplayDate(album: any) {
@@ -35,6 +46,14 @@ function getDisplayTitle(title: string) {
 
 <Layout title="Family Gallery" description="Private family photo albums - sign in required">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    {error && (
+      <div class="mb-8 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
+        <p class="font-bold text-center">⚠️ Database Connection Issue</p>
+        <p class="text-sm text-center">Make sure you have added all environment variables (SUPABASE_URL, etc.) in your Netlify dashboard.</p>
+        <p class="text-xs mt-2 opacity-50 text-center font-mono">{error}</p>
+      </div>
+    )}
+
     {Astro.url.searchParams.has('linked') && (
       <div class="mb-8 p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg text-center animate-pulse">
         ✅ Google Photos successfully linked!
