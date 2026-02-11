@@ -14,7 +14,7 @@ const { title, description = "Benicja's Family Gallery & Recipes" } = Astro.prop
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script is:inline src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <title>{title}</title>
   </head>
   <body class="bg-gray-50 min-h-screen">
@@ -54,12 +54,23 @@ const { title, description = "Benicja's Family Gallery & Recipes" } = Astro.prop
     </footer>
     
     <script is:inline>
+      // Debug: Log when script runs
+      console.log('[Netlify Identity] Script starting...');
+      console.log('[Netlify Identity] Current URL:', window.location.href);
+      console.log('[Netlify Identity] Hash:', window.location.hash);
+      
       // Wait for Netlify Identity to be ready
       function initNetlifyIdentity() {
+        console.log('[Netlify Identity] Checking if widget is loaded...', !!window.netlifyIdentity);
+        
         if (window.netlifyIdentity) {
+          console.log('[Netlify Identity] Widget loaded! Initializing...');
+          
           window.netlifyIdentity.on("init", function(user) {
+            console.log('[Netlify Identity] Init event fired, user:', user);
             if (!user) {
               window.netlifyIdentity.on("login", function() {
+                console.log('[Netlify Identity] Login successful, redirecting to /admin/');
                 document.location.href = "/admin/";
               });
             }
@@ -68,10 +79,14 @@ const { title, description = "Benicja's Family Gallery & Recipes" } = Astro.prop
           // Handle invite and recovery tokens
           var hash = window.location.hash;
           if (hash && (hash.indexOf("#invite_token=") !== -1 || hash.indexOf("#recovery_token=") !== -1 || hash.indexOf("#confirmation_token=") !== -1)) {
+            console.log('[Netlify Identity] Token detected in URL! Opening modal...');
             window.netlifyIdentity.open();
+          } else {
+            console.log('[Netlify Identity] No token found in URL');
           }
         } else {
           // Retry if not ready yet
+          console.log('[Netlify Identity] Widget not ready yet, retrying in 100ms...');
           setTimeout(initNetlifyIdentity, 100);
         }
       }
