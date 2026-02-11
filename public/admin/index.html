@@ -9,23 +9,34 @@
 <body>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   <script>
-    if (window.netlifyIdentity) {
-      // Redirect to admin after login
-      window.netlifyIdentity.on("init", function(user) {
-        if (!user) {
-          window.netlifyIdentity.on("login", function() {
-            document.location.href = "/admin/";
-          });
-        }
-      });
-      
-      // Handle invite, recovery, and confirmation tokens
-      window.netlifyIdentity.on("init", function() {
+    // Wait for Netlify Identity to be ready
+    function initNetlifyIdentity() {
+      if (window.netlifyIdentity) {
+        // Redirect to admin after login
+        window.netlifyIdentity.on("init", function(user) {
+          if (!user) {
+            window.netlifyIdentity.on("login", function() {
+              document.location.href = "/admin/";
+            });
+          }
+        });
+        
+        // Handle invite, recovery, and confirmation tokens
         var hash = window.location.hash;
         if (hash && (hash.indexOf("#invite_token=") !== -1 || hash.indexOf("#recovery_token=") !== -1 || hash.indexOf("#confirmation_token=") !== -1)) {
           window.netlifyIdentity.open();
         }
-      });
+      } else {
+        // Retry if not ready yet
+        setTimeout(initNetlifyIdentity, 100);
+      }
+    }
+    
+    // Start when DOM is ready
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initNetlifyIdentity);
+    } else {
+      initNetlifyIdentity();
     }
   </script>
 </body>

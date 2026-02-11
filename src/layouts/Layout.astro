@@ -54,22 +54,33 @@ const { title, description = "Benicja's Family Gallery & Recipes" } = Astro.prop
     </footer>
     
     <script is:inline>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", function(user) {
-          if (!user) {
-            window.netlifyIdentity.on("login", function() {
-              document.location.href = "/admin/";
-            });
-          }
-        });
-        
-        // Handle invite and recovery tokens
-        window.netlifyIdentity.on("init", function() {
+      // Wait for Netlify Identity to be ready
+      function initNetlifyIdentity() {
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.on("init", function(user) {
+            if (!user) {
+              window.netlifyIdentity.on("login", function() {
+                document.location.href = "/admin/";
+              });
+            }
+          });
+          
+          // Handle invite and recovery tokens
           var hash = window.location.hash;
           if (hash && (hash.indexOf("#invite_token=") !== -1 || hash.indexOf("#recovery_token=") !== -1 || hash.indexOf("#confirmation_token=") !== -1)) {
             window.netlifyIdentity.open();
           }
-        });
+        } else {
+          // Retry if not ready yet
+          setTimeout(initNetlifyIdentity, 100);
+        }
+      }
+      
+      // Start when DOM is ready
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initNetlifyIdentity);
+      } else {
+        initNetlifyIdentity();
       }
     </script>
   </body>
