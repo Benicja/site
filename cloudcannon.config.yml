@@ -16,8 +16,11 @@ collections_config:
     description: Manage your cooking and baking recipes
     output: true
     url: /recipes/[slug]/
-    filter: 
-      base: "md"
+    filter:
+      base: md
+    _enabled_editors:
+      - data
+      - visual
     
     create:
       path: '[slug].md'
@@ -31,6 +34,11 @@ collections_config:
             type: text
             required: true
             comment: The recipe name
+            
+          - name: slug
+            type: text
+            required: true
+            comment: URL-friendly slug (used in recipe links)
             
           - name: description
             type: textarea
@@ -102,6 +110,10 @@ collections_config:
 _defaults:
   collections/recipes:
     schema: recipe
+    _inputs:
+      title:
+        type: text
+        required: true
 
 # Editor interface settings
 editor:
