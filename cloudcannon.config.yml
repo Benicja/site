@@ -1,0 +1,119 @@
+# CloudCannon Configuration
+source: src
+public_path: dist
+base_url: /
+
+# Build configuration
+build:
+  preserve_untranslated: false
+
+# Collection configuration
+collections_config:
+  recipes:
+    path: src/content/recipes
+    name: Recipes
+    icon: restaurant_menu
+    description: Manage your cooking and baking recipes
+    output: true
+    url: /recipes/[slug]/
+    
+    create:
+      path: '[slug].md'
+      
+    schemas:
+      recipe:
+        name: Recipe
+        icon: restaurant
+        fields:
+          - name: title
+            type: text
+            required: true
+            comment: The recipe name
+            
+          - name: description
+            type: textarea
+            comment: Brief description of the recipe
+            
+          - name: featured_image
+            type: image
+            comment: Main recipe photo
+            
+          - name: prep_time
+            type: number
+            comment: Prep time in minutes
+            
+          - name: cook_time
+            type: number
+            comment: Cooking time in minutes
+            
+          - name: servings
+            type: number
+            comment: Number of servings
+            
+          - name: difficulty
+            type: select
+            options:
+              values: [Easy, Medium, Hard]
+              
+          - name: category
+            type: select
+            options:
+              values: [Breakfast, Lunch, Dinner, Dessert, Snack, Appetizer]
+              
+          - name: ingredients
+            type: array
+            comment: List of ingredients with amounts
+            options:
+              structures:
+                - label: Ingredient
+                  icon: add
+                  fields:
+                    - name: item
+                      type: text
+                      comment: Ingredient name
+                    - name: amount
+                      type: text
+                      comment: Quantity and unit
+                      
+          - name: instructions
+            type: array
+            comment: Step-by-step cooking instructions
+            options:
+              structures:
+                - label: Step
+                  icon: format_list_numbered
+                  fields:
+                    - name: step
+                      type: textarea
+                      comment: Instruction step
+                      
+          - name: tags
+            type: multiselect
+            comment: Recipe tags for filtering
+            options:
+              values: [Vegetarian, Vegan, Gluten-Free, Dairy-Free, Low-Carb, Quick, Make-Ahead, Holiday]
+              
+          - name: notes
+            type: rich_text
+            comment: Additional recipe notes or tips
+
+# Editor interface settings
+editor:
+  default_path: /src/content/recipes/
+
+# Data file configuration for gallery settings
+data_config:
+  gallery_settings:
+    path: src/data/gallery.json
+    
+# Snippet configuration for reusable components
+snippet_config:
+  recipe_card:
+    template: recipe_card_snippet
+    inline: false
+    preview:
+      text: Recipe Card
+      icon: restaurant
+    definitions:
+      component_name: RecipeCard
+      content_key: recipe_data

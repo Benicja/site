@@ -1,0 +1,102 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import RecipeCard from '../components/RecipeCard.astro';
+
+// Get all recipes and sort by date (newest first)
+const recipes = await getCollection('recipes');
+const sortedRecipes = recipes.sort((a, b) => 
+  (b.data.publishDate?.getTime() || 0) - (a.data.publishDate?.getTime() || 0)
+);
+
+// Group recipes by category
+const recipesByCategory = sortedRecipes.reduce((acc, recipe) => {
+  const category = recipe.data.category;
+  if (!acc[category]) {
+    acc[category] = [];
+  }
+  acc[category].push(recipe);
+  return acc;
+}, {} as Record<string, typeof recipes>);
+
+const categories = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack', 'Appetizer'];
+---
+
+<Layout title="Family Recipes" description="Browse our collection of beloved family recipes, tested and perfected in our kitchen.">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">Family Recipes</h1>
+      <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+        A collection of our favorite recipes, passed down through generations and perfected in our kitchen.
+        Each one tells a story and brings our family together.
+      </p>
+    </div>
+
+    <!-- Recipe Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+      <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+        <div class="text-2xl font-bold text-primary-600">{recipes.length}</div>
+        <div class="text-sm text-gray-600">Total Recipes</div>
+      </div>
+      <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+        <div class="text-2xl font-bold text-primary-600">{Object.keys(recipesByCategory).length}</div>
+        <div class="text-sm text-gray-600">Categories</div>
+      </div>
+      <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+        <div class="text-2xl font-bold text-primary-600">{recipes.filter(r => r.data.tags?.includes('Quick')).length}</div>
+        <div class="text-sm text-gray-600">Quick Recipes</div>
+      </div>
+      <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+        <div class="text-2xl font-bold text-primary-600">{recipes.filter(r => r.data.tags?.includes('Vegetarian')).length}</div>
+        <div class="text-sm text-gray-600">Vegetarian</div>
+      </div>
+    </div>
+
+    {recipes.length > 0 ? (
+      <>
+        {/* All Recipes Grid */}
+        <div class="mb-16">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-6">All Recipes</h2>
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedRecipes.map(recipe => (
+              <RecipeCard recipe={recipe} />
+            ))}
+          </div>
+        </div>
+
+        {/* Recipes by Category */}
+        {categories.map(category => (
+          recipesByCategory[category] && recipesByCategory[category].length > 0 && (
+            <div class="mb-12" key={category}>
+              <h2 class="text-2xl font-semibold text-gray-900 mb-6">{category}</h2>
+              <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {recipesByCategory[category].map(recipe => (
+                  <RecipeCard recipe={recipe} />
+                ))}
+              </div>
+            </div>
+          )
+        ))}
+      </>
+    ) : (
+      /* No Recipes State */
+      <div class="text-center py-12">
+        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">No recipes yet</h3>
+        <p class="text-gray-600 mb-6">
+          We're still building our recipe collection. Check back soon for delicious family favorites!
+        </p>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+          <p class="text-blue-800 text-sm">
+            <strong>For site admin:</strong> Add recipes through your CloudCannon CMS dashboard to see them appear here.
+          </p>
+        </div>
+      </div>
+    )}
+  </div>
+</Layout>

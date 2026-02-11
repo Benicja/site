@@ -1,0 +1,55 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Benicja's Family Gallery & Recipes" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow-sm border-b">
+      <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center">
+            <a href="/" class="text-xl font-semibold text-gray-900 hover:text-primary-600 transition-colors">
+              Benicja's Kitchen
+            </a>
+          </div>
+          <div class="flex space-x-8">
+            <a href="/" class="text-gray-700 hover:text-primary-600 transition-colors">
+              Home
+            </a>
+            <a href="/recipes" class="text-gray-700 hover:text-primary-600 transition-colors">
+              Recipes
+            </a>
+            <a href="/gallery" class="text-gray-700 hover:text-primary-600 transition-colors">
+              Gallery
+            </a>
+          </div>
+        </div>
+      </nav>
+    </header>
+    
+    <main>
+      <slot />
+    </main>
+    
+    <footer class="bg-gray-900 text-white mt-16">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="text-center">
+          <p class="text-gray-400">© 2026 Benicja's Kitchen. Made with ❤️ for family.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

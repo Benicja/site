@@ -1,0 +1,75 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Family Gallery" description="Private family photo albums - sign in required">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">Family Gallery</h1>
+      <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+        Our private collection of family photos and memories, organized in beautiful albums.
+        Sign in with your Google account to view our shared moments.
+      </p>
+    </div>
+
+    <!-- Coming Soon Section -->
+    <div class="text-center py-16">
+      <div class="w-32 h-32 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <svg class="w-16 h-16 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <h2 class="text-3xl font-semibold text-gray-900 mb-4">Gallery Coming Soon</h2>
+      <p class="text-lg text-gray-600 mb-8 max-w-xl mx-auto">
+        We're currently setting up the photo gallery with Google Photos integration and authentication.
+        This will feature an Instagram-style feed of our family albums.
+      </p>
+      
+      <!-- Features Preview -->
+      <div class="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto mb-8">
+        <div class="bg-white p-6 rounded-lg shadow-sm border">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Secure Access</h3>
+          <p class="text-sm text-gray-600">Google authentication with family-only access control</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-sm border">
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Album Feed</h3>
+          <p class="text-sm text-gray-600">Instagram-style browsing with newest albums first</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-sm border">
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 011 1v1a1 1 0 01-1 1v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7a1 1 0 01-1-1V5a1 1 0 011-1h4zM9 3v1h6V3H9z" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Google Photos</h3>
+          <p class="text-sm text-gray-600">Seamless sync with your Google Photos albums</p>
+        </div>
+      </div>
+      
+      <!-- Development Status -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-lg mx-auto">
+        <h3 class="font-semibold text-blue-900 mb-2">What's Coming Next</h3>
+        <ul class="text-sm text-blue-800 space-y-1 text-left">
+          <li>✅ Basic site structure and recipes</li>
+          <li>🔄 Google OAuth authentication setup</li>
+          <li>🔄 Google Photos API integration</li>
+          <li>🔄 Instagram-style gallery interface</li>
+          <li>⏳ Photo browsing and comments</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</Layout>
