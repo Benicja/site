@@ -244,6 +244,7 @@ const totalTime = data.prep_time + data.cook_time;
     font-size: 1.05rem;
     font-weight: 600;
     color: #0f172a;
+    white-space: nowrap;
   }
 
   .recipe-media {
@@ -372,6 +373,10 @@ const totalTime = data.prep_time + data.cook_time;
       max-width: 100%;
     }
 
+    .recipe-body {
+      gap: 8px;
+    }
+
     .ingredient-row {
       grid-template-columns: 64px 1fr;
     }
@@ -382,6 +387,7 @@ const totalTime = data.prep_time + data.cook_time;
 
     .hero-meta {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px;
     }
   }
 </style>
