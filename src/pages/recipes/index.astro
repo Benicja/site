@@ -19,6 +19,8 @@ const sortedRecipes = recipes.sort((a, b) =>
 // Get heart data
 const globalHearts = await getRecipeHearts();
 const userHearts = user ? await getUserHearts(user.user_email) : new Set();
+
+const formatCategories = (value) => (Array.isArray(value) ? value.join(',') : value);
 ---
 
 <Layout title="Recipes" description="A collection of our favorite family recipes.">
@@ -43,12 +45,13 @@ const userHearts = user ? await getUserHearts(user.user_email) : new Set();
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2" data-filter-group>
             {[ 'Breakfast', 'Dinner', 'Dessert' ].map(cat => (
               <button 
+                type="button"
                 class="filter-btn px-4 py-1.5 rounded-full border border-gray-100 bg-white text-[10px] font-bold uppercase tracking-widest text-gray-400 transition-all duration-100 select-none data-[active=true]:bg-gray-100/50 data-[active=true]:text-gray-900 data-[active=true]:border-gray-400 [&:not([data-active=true])]:hover:text-gray-900 [&:not([data-active=true])]:hover:border-gray-200"
                 data-filter="category"
-                data-value={cat}
+                data-value={cat.toLowerCase()}
                 data-active="false"
               >
                 {cat}
@@ -57,6 +60,7 @@ const userHearts = user ? await getUserHearts(user.user_email) : new Set();
             
             {user && (
               <button 
+                type="button"
                 class="filter-btn px-4 py-1.5 rounded-full border border-gray-100 bg-white text-[10px] font-bold uppercase tracking-widest text-gray-400 transition-all duration-100 select-none flex items-center gap-2 data-[active=true]:bg-red-50/50 data-[active=true]:text-red-500 data-[active=true]:border-red-400 [&:not([data-active=true])]:hover:text-gray-900 [&:not([data-active=true])]:hover:border-gray-200"
                 data-filter="hearted"
                 data-active="false"
@@ -76,7 +80,7 @@ const userHearts = user ? await getUserHearts(user.user_email) : new Set();
               <div 
                 class="recipe-item" 
                 data-title={recipe.data.title.toLowerCase()}
-                data-category={recipe.data.category}
+                data-category={formatCategories(recipe.data.category).toLowerCase()}
                 data-hearted={userHearts.has(recipe.slug).toString()}
               >
                 <RecipeCard 
@@ -108,8 +112,10 @@ const userHearts = user ? await getUserHearts(user.user_email) : new Set();
       const recipesGrid = document.getElementById('recipes-grid');
       const noResults = document.getElementById('no-results');
       const filterBtns = document.querySelectorAll('.filter-btn');
+      const filterGroup = document.querySelector('[data-filter-group]');
 
       if (!searchInput) return;
+
 
       let activeCategory = null;
       let showHeartedOnly = false;
@@ -120,20 +126,27 @@ const userHearts = user ? await getUserHearts(user.user_email) : new Set();
         const query = normalize(searchInput.value.trim());
         let hasResults = false;
 
+
         recipeItems.forEach(item => {
           const title = normalize(item.getAttribute('data-title') || '');
           const category = item.getAttribute('data-category');
           const isHearted = item.getAttribute('data-hearted') === 'true';
 
           let matchesSearch = title.includes(query);
-          let matchesCategory = !activeCategory || category === activeCategory;
+          let matchesCategory = true;
+          if (activeCategory) {
+            const categories = (category || '')
+              .split(',')
+              .map(cat => cat.trim().toLowerCase())
+              .filter(Boolean);
+            matchesCategory = categories.includes(activeCategory);
+          }
           let matchesHearted = !showHeartedOnly || isHearted;
 
-          if (matchesSearch && matchesCategory && matchesHearted) {
-            item.classList.remove('hidden');
+          const shouldShow = matchesSearch && matchesCategory && matchesHearted;
+          item.hidden = !shouldShow;
+          if (shouldShow) {
             hasResults = true;
-          } else {
-            item.classList.add('hidden');
           }
         });
 
@@ -146,39 +159,56 @@ const userHearts = user ? await getUserHearts(user.user_email) : new Set();
         }
       }
 
-      // Handle Category/Hearted Buttons
-      filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const type = btn.getAttribute('data-filter');
-          const value = btn.getAttribute('data-value');
-          const wasActive = btn.getAttribute('data-active') === 'true';
+      function handleFilterClick(btn) {
+        const type = btn.getAttribute('data-filter');
+        const value = btn.getAttribute('data-value');
+        const wasActive = btn.getAttribute('data-active') === 'true';
 
-          if (type === 'category') {
-            if (wasActive) {
-              activeCategory = null;
-              btn.setAttribute('data-active', 'false');
-            } else {
-              // Reset other category buttons
-              filterBtns.forEach(b => {
-                if (b.getAttribute('data-filter') === 'category') {
-                  b.setAttribute('data-active', 'false');
-                }
-              });
-              activeCategory = value;
-              btn.setAttribute('data-active', 'true');
-            }
-          } else if (type === 'hearted') {
-            showHeartedOnly = !showHeartedOnly;
-            btn.setAttribute('data-active', showHeartedOnly.toString());
-            const heartSvg = btn.querySelector('svg');
-            if (showHeartedOnly) {
-              heartSvg?.classList.add('fill-current');
-            } else {
-              heartSvg?.classList.remove('fill-current');
-            }
+
+        if (type === 'category') {
+          if (wasActive) {
+            activeCategory = null;
+            btn.setAttribute('data-active', 'false');
+          } else {
+            // Reset other category buttons
+            filterBtns.forEach(b => {
+              if (b.getAttribute('data-filter') === 'category') {
+                b.setAttribute('data-active', 'false');
+              }
+            });
+            activeCategory = value ? value.toLowerCase() : null;
+            btn.setAttribute('data-active', 'true');
           }
+        } else if (type === 'hearted') {
+          showHeartedOnly = !showHeartedOnly;
+          btn.setAttribute('data-active', showHeartedOnly.toString());
+          const heartSvg = btn.querySelector('svg');
+          if (showHeartedOnly) {
+            heartSvg?.classList.add('fill-current');
+          } else {
+            heartSvg?.classList.remove('fill-current');
+          }
+        }
 
-          updateGrid();
+        updateGrid();
+      }
+
+      // Handle Category/Hearted Buttons (delegated)
+      filterGroup?.addEventListener('click', (event) => {
+        const rawTarget = event.target;
+        const element = rawTarget instanceof Element ? rawTarget : rawTarget?.parentElement;
+        const btn = element?.closest ? element.closest('.filter-btn') : null;
+        if (!btn) return;
+        handleFilterClick(btn);
+      });
+
+      // Fallback: bind directly to buttons (guards against delegation issues)
+      filterBtns.forEach(btn => {
+        if (btn.getAttribute('data-inited') === 'true') return;
+        btn.setAttribute('data-inited', 'true');
+        btn.addEventListener('click', (event) => {
+          event.preventDefault();
+          handleFilterClick(btn);
         });
       });
 
