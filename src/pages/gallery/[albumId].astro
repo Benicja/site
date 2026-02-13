@@ -4,7 +4,6 @@ export const prerender = false;
 import Layout from '../../layouts/Layout.astro';
 import { SESSION_COOKIE, getApprovedUser, getUserFromSession } from '../../lib/auth';
 import { getAlbumById, getPhotosByAlbumId } from '../../lib/gallery';
-import { initGallery } from '../../lib/galleryInit';
 import '@fancyapps/ui/dist/fancybox/fancybox.css';
 
 const { albumId } = Astro.params;
@@ -138,10 +137,12 @@ function getDisplayTitle(title: string) {
   document.addEventListener('astro:after-swap', safeInit);
   
   // Re-layout on window resize
-  let resizeTimeout;
+  let resizeTimeout: number | undefined;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(initGallery, 250);
+    resizeTimeout = setTimeout(() => {
+      safeInit();
+    }, 250);
   });
 </script>
 

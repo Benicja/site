@@ -58,23 +58,23 @@ export async function initGallery() {
   items.forEach((item, i) => {
     const box = layout.boxes[i];
     if (!box) return;
-    item.style.position = 'absolute';
-    item.style.top = `${box.top}px`;
-    item.style.left = `${box.left}px`;
-    item.style.width = `${box.width}px`;
-    item.style.height = `${box.height}px`;
-    item.style.display = 'block';
+    const element = item as HTMLElement;
+    element.style.position = 'absolute';
+    element.style.top = `${box.top}px`;
+    element.style.left = `${box.left}px`;
+    element.style.width = `${box.width}px`;
+    element.style.height = `${box.height}px`;
+    element.style.display = 'block';
   });
 
   // Hide spinner after layout is applied
   if (spinner) spinner.style.display = 'none';
 
-  // Bind Fancybox to gallery items with very fast close animation
-  Fancybox.bind('[data-fancybox="gallery"]', {
-    autoSize: true,
+  // Bind Fancybox to gallery items with very fast animations
+  Fancybox.bind('[data-fancybox="gallery"]' as any, {
     speed: 50,  // Ultra fast animations (50ms)
     placeFocusBack: false,
     trapFocus: false
-  });
+  } as any);
 }
 

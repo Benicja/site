@@ -1,10 +1,10 @@
-import type { APIRoute } from 'astro';
+import type { APIRoute, APIContext } from 'astro';
 import { SESSION_COOKIE, getApprovedUser, getUserFromSession } from '../../../lib/auth';
 import { supabaseAdmin } from '../../../lib/supabase';
 
 export const prerender = false;
 
-async function getAdminFromSession(cookies: APIRoute['cookies']) {
+async function getAdminFromSession(cookies: APIContext['cookies']) {
   const sessionId = cookies.get(SESSION_COOKIE)?.value;
   const user = sessionId ? await getUserFromSession(sessionId) : null;
   if (!user) return null;

@@ -20,7 +20,7 @@ const sortedRecipes = recipes.sort((a, b) =>
 const globalHearts = await getRecipeHearts();
 const userHearts = user ? await getUserHearts(user.user_email) : new Set();
 
-const formatCategories = (value) => (Array.isArray(value) ? value.join(',') : value);
+const formatCategories = (value: unknown) => (Array.isArray(value) ? value.join(',') : value);
 ---
 
 <Layout title="Recipes" description="A collection of our favorite family recipes." user={user}>
