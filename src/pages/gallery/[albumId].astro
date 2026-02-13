@@ -100,15 +100,19 @@ function getDisplayTitle(title: string) {
       {photos.map((photo) => {
         const encodedUrl = encodeURIComponent(photo.image_url);
         const isVideo = photo.media_type === 'video';
-        const fullUrl = isVideo ? `${photo.image_url}=dv` : `/api/gallery/image?url=${encodedUrl}&w=1000`;
+        const fullUrl = isVideo ? `/api/gallery/video?url=${encodedUrl}` : `/api/gallery/image?url=${encodedUrl}&w=1000`;
         const thumbUrl = `/api/gallery/image?url=${encodedUrl}&w=800`;
         const videoData = isVideo
-          ? JSON.stringify({ source: [{ src: fullUrl, type: 'video/mp4' }], poster: thumbUrl })
+          ? JSON.stringify({
+              source: [{ src: fullUrl, type: 'video/mp4' }],
+              poster: thumbUrl,
+              attributes: { controls: true, preload: 'auto', playsinline: true }
+            })
           : undefined;
 
         return (
           <a 
-            href={isVideo ? thumbUrl : fullUrl}
+            href={fullUrl}
             class={`photo-item absolute transition-all duration-300 hover:scale-[1.02] hover:z-10${isVideo ? ' is-video' : ''}`}
             data-fancybox="gallery"
             data-type={isVideo ? 'html5video' : undefined}

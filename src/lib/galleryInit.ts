@@ -11,6 +11,7 @@ export async function initGallery() {
   const spinner = document.getElementById('loading-spinner');
   const emptyState = document.getElementById('empty-state');
 
+
   if (items.length === 0) {
     if (spinner) spinner.style.display = 'none';
     if (emptyState) emptyState.classList.remove('hidden');
@@ -78,5 +79,6 @@ export async function initGallery() {
     placeFocusBack: false,
     trapFocus: false
   } as any);
+
 }
 
