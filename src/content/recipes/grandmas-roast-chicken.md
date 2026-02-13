@@ -4,7 +4,6 @@ description: "A classic family dinner that fills the house with incredible aroma
 featured_image: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&q=80&w=1000"
 prep_time: 20
 cook_time: 90
-servings: 6
 category: "Dinner"
 ingredients:
   - item: "Whole chicken"

@@ -48,7 +48,7 @@ git push origin main
 1. Click **"New Recipes"** in the admin dashboard
 2. Fill in all the recipe fields:
    - Title, description, category
-   - Prep time, cook time, servings
+   - Prep time, cook time
    - Ingredients (click "Add ingredients" for each)
    - Instructions (click "Add instructions" for each step)
    - Upload an optional featured image

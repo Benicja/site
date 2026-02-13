@@ -4,7 +4,6 @@ description: "Crispy edges, chewy centers, and loaded with chocolate chips - the
 featured_image: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&q=80&w=1000"
 prep_time: 15
 cook_time: 12
-servings: 24
 category: "Dessert"
 ingredients:
   - item: "All-purpose flour"

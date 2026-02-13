@@ -8,7 +8,6 @@ const recipeCollection = defineCollection({
     featured_image: z.string().optional(),
     prep_time: z.number(),
     cook_time: z.number(),
-    servings: z.number(),
     category: z.enum(['Breakfast', 'Dinner', 'Dessert']),
     ingredients: z.array(z.object({
       item: z.string(),

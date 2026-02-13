@@ -4,7 +4,6 @@ description: this is lasagne
 featured_image: /images/recipes/plane-becca.png
 prep_time: 5
 cook_time: 9
-servings: 6
 difficulty: Medium
 category: Dinner
 ingredients:

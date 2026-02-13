@@ -4,7 +4,6 @@ description: "A healthy, delicious breakfast or snack that's ready in minutes. P
 featured_image: "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&q=80&w=1000"
 prep_time: 5
 cook_time: 2
-servings: 2
 category: "Breakfast"
 ingredients:
   - item: "Sourdough bread slices"
