@@ -137,7 +137,7 @@ function getDisplayTitle(title: string) {
   document.addEventListener('astro:after-swap', safeInit);
   
   // Re-layout on window resize
-  let resizeTimeout: number | undefined;
+  let resizeTimeout: ReturnType<typeof setTimeout> | undefined;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
