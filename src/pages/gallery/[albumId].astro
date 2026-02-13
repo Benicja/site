@@ -4,7 +4,8 @@ export const prerender = false;
 import Layout from '../../layouts/Layout.astro';
 import { SESSION_COOKIE, getApprovedUser, getUserFromSession } from '../../lib/auth';
 import { getAlbumById, getPhotosByAlbumId } from '../../lib/gallery';
-import 'glightbox/dist/css/glightbox.css';
+import { initGallery } from '../../lib/galleryInit';
+import '@fancyapps/ui/dist/fancybox/fancybox.css';
 
 const { albumId } = Astro.params;
 
@@ -52,6 +53,7 @@ function getDisplayTitle(title: string) {
   description={`View photos from ${getDisplayTitle(album.title)}`}
   user={user}
   isAdmin={isAdmin}
+  enableTransitions={false}
 >
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <!-- Breadcrumbs -->
@@ -87,6 +89,10 @@ function getDisplayTitle(title: string) {
       </div>
     </div>
 
+    <div id="empty-state" class="hidden py-20 text-center">
+      <h2 class="text-xl font-serif text-gray-400">No photos found for this album.</h2>
+    </div>
+
     <!-- Photo Grid -->
     <div 
       id="photo-grid" 
@@ -97,8 +103,8 @@ function getDisplayTitle(title: string) {
         return (
           <a 
             href={`/api/gallery/image?url=${encodedUrl}&w=1000`} 
-            class="photo-item glightbox absolute transition-all duration-300 hover:scale-[1.02] hover:z-10"
-            data-gallery="gallery1"
+            class="photo-item absolute transition-all duration-300 hover:scale-[1.02] hover:z-10"
+            data-fancybox="gallery"
           >
             <img 
               src={`/api/gallery/image?url=${encodedUrl}&w=800`} 
@@ -114,74 +120,25 @@ function getDisplayTitle(title: string) {
 </Layout>
 
 <script>
-  import justifiedLayout from 'justified-layout';
-  import GLightbox from 'glightbox';
+  import { initGallery } from '../../lib/galleryInit';
 
-  async function initGallery() {
-    const container = document.getElementById('photo-grid');
-    if (!container) return;
-
-    const items = Array.from(container.querySelectorAll('.photo-item')) as HTMLElement[];
-    if (items.length === 0) return;
-
-    // Load images to get natural dimensions
-    const imgData = await Promise.all(items.map(item => {
-      const img = item.querySelector('img');
-      return new Promise<{width: number, height: number}>(resolve => {
-        if (!img) return resolve({width: 300, height: 200});
-        if (img.complete) {
-          resolve({width: img.naturalWidth || 300, height: img.naturalHeight || 200});
-        } else {
-          img.onload = () => resolve({width: img.naturalWidth || 300, height: img.naturalHeight || 200});
-          img.onerror = () => resolve({width: 300, height: 200});
-        }
-      });
-    }));
-
-    // Calculate layout
-    const layout = justifiedLayout(imgData, {
-      containerWidth: container.clientWidth,
-      targetRowHeight: 280,
-      boxSpacing: 12,
-      containerPadding: 0
-    });
-
-    // Apply layout
-    container.style.height = `${layout.containerHeight}px`;
-    items.forEach((item, i) => {
-      const box = layout.boxes[i];
-      if (!box) return;
-      item.style.position = 'absolute';
-      item.style.top = `${box.top}px`;
-      item.style.left = `${box.left}px`;
-      item.style.width = `${box.width}px`;
-      item.style.height = `${box.height}px`;
-      item.style.display = 'block';
-    });
-
-    // Hide spinner after layout is applied
-    const spinner = document.getElementById('loading-spinner');
-    if (spinner) {
-      spinner.style.display = 'none';
+  const safeInit = async () => {
+    try {
+      await initGallery();
+    } catch (error) {
+      const spinner = document.getElementById('loading-spinner');
+      if (spinner) spinner.style.display = 'none';
+      const emptyState = document.getElementById('empty-state');
+      if (emptyState) emptyState.classList.remove('hidden');
+      console.error('Gallery init failed', error);
     }
+  };
 
-    // Init Lightbox
-    const lightbox = GLightbox({
-      selector: '.glightbox',
-      loop: true,
-      openEffect: 'zoom',
-      closeEffect: 'fade',
-      width: '90vw',
-      height: '90vh',
-    });
-  }
-
-  // Handle page load and Astro view transitions
-  initGallery();
-  document.addEventListener('astro:after-swap', initGallery);
+  safeInit();
+  document.addEventListener('astro:after-swap', safeInit);
   
   // Re-layout on window resize
-  let resizeTimeout: any;
+  let resizeTimeout;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(initGallery, 250);
@@ -189,56 +146,26 @@ function getDisplayTitle(title: string) {
 </script>
 
 <style>
-  /* Force lightbox to fit in viewport */
-  :global(.glightbox-container) {
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
+  /* Modern Fancybox image viewer optimization */
+  :global(.fancybox__container) {
+    background: rgba(0, 0, 0, 0.95) !important;
+  }
+
+  :global(.fancybox__viewport) {
     overflow: hidden !important;
   }
 
-  :global(.gslide) {
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    overflow: hidden !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  :global(.gslide-image) {
-    width: auto !important;
-    height: auto !important;
-    max-width: 90vw !important;
-    max-height: 90vh !important;
-    overflow: hidden !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  :global(.gslide-image img) {
+  :global(.fancybox__image) {
     max-width: 90vw !important;
     max-height: 90vh !important;
     width: auto !important;
     height: auto !important;
-    object-fit: scale-down !important;
+    object-fit: contain !important;
   }
 
-  :global(.glightbox-image) {
-    max-width: 90vw !important;
-    max-height: 90vh !important;
-    width: auto !important;
-    height: auto !important;
-    object-fit: scale-down !important;
-  }
-
-  /* Optional: Smooth fade-in for images */
+  /* Smooth fade-in for grid images */
   img {
-    animation: fadeIn 0.5s ease-in-out;
+    animation: fadeIn 0.3s ease-in-out;
   }
   @keyframes fadeIn {
     from { opacity: 0; }

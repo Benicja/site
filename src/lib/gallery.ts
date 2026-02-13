@@ -15,6 +15,9 @@ export interface Photo {
   google_photo_id: string;
   album_id: string;
   image_url: string;
+  width?: number;
+  height?: number;
+  media_type?: string;
   created_at: string;
 }
 
