@@ -1,5 +1,5 @@
 ---
-import AddAllToShoppingListButton from './AddAllToShoppingListButton.tsx';
+import AddAllToShoppingListButtonComponent from './AddAllToShoppingListButton.tsx';
 const { ingredients, className = '' } = Astro.props;
 ---
-<AddAllToShoppingListButton ingredients={ingredients} className={className} client:visible />
+<AddAllToShoppingListButtonComponent ingredients={ingredients} className={className} client:visible />
