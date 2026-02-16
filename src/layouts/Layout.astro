@@ -365,13 +365,9 @@ if (resolveAuth) {
       <main transition:animate="fade">
         <slot />
       </main>
-      <div class="z-[201]">
-        <client:only fallback={null} name="ShoppingListButton">
-          <import from="../components/ShoppingListButton.tsx" />
-        </client:only>
-      </div>
+      {/* ShoppingListButton floating widget removed */}
     </main>
-    <ShoppingListButton client:load />
+    {/* ShoppingListButton floating widget removed */}
     
     <script is:inline>
       // Debug: Log when script runs
