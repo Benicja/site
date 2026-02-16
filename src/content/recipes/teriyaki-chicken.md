@@ -1,0 +1,33 @@
+---
+title: "Teriyaki Chicken"
+description: "A sweet and sticky teriyaki chicken stir fry."
+featured_image: ""
+prep_time: 15
+cook_time: 25
+servings: 4
+category: "Dinner"
+ingredients:
+  - item: "Broccoli"
+    amount: "300g"
+  - item: "Chicken Thighs, Diced"
+    amount: "1kg"
+  - item: "Light Soy Sauce"
+    amount: "120ml"
+  - item: "Brown Sugar"
+    amount: "100g"
+  - item: "Apple Cider Vinegar"
+    amount: "2 tbsp"
+  - item: "Fresh Ginger, Grated"
+    amount: "20g"
+  - item: "Garlic Cloves, Minced"
+    amount: "4"
+  - item: "Sesame Seeds"
+    amount: "10g"
+instructions:
+  - step: "Make Sauce: Mix Soy Sauce, Brown Sugar, Vinegar, Ginger, Garlic."
+  - step: "Stir fry Chicken, add Sauce, simmer until sticky."
+  - step: "Stir fry or steam Broccoli, add to pan."
+  - step: "Sprinkle Sesame Seeds, serve with Rice or Noodles."
+publishDate: 2026-02-16T08:00:00Z
+draft: false
+---

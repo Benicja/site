@@ -1,4 +1,6 @@
 ---
+
+import AddToShoppingListIconButton from './AddToShoppingListIconButton.astro';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -45,8 +47,9 @@ const totalTime = data.prep_time + data.cook_time;
       </div>
     )}
     
-    <!-- Category Overlay -->
-    <div class="absolute top-4 left-4 z-20">
+    <!-- Add Button and Category Overlay -->
+    <div class="absolute top-4 left-4 z-20 flex items-center gap-2">
+      <AddToShoppingListIconButton ingredients={data.ingredients} className="w-8 h-8" />
       <a 
         href={`/recipes?category=${data.category}`}
         class="category-tag px-3 py-1 bg-white/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-widest text-gray-900 rounded-full shadow-sm hover:bg-white transition-colors cursor-pointer select-none"
@@ -60,11 +63,13 @@ const totalTime = data.prep_time + data.cook_time;
   <!-- Recipe Content -->
   <div class="p-8 flex flex-col flex-1">
     <div class="flex-1">
-      <h3 class="text-xl md:text-2xl font-serif font-medium text-gray-900 mb-3 group-hover:text-primary-600 transition-colors duration-300">
-        <a href={`/recipes/${slug}`} class="after:absolute after:inset-0">
-          {data.title}
-        </a>
-      </h3>
+      <div class="flex items-start gap-2 mb-3">
+        <h3 class="text-xl md:text-2xl font-serif font-medium text-gray-900 group-hover:text-primary-600 transition-colors duration-300 m-0 flex-1">
+          <a href={`/recipes/${slug}`} class="after:absolute after:inset-0">
+            {data.title}
+          </a>
+        </h3>
+      </div>
       <p class="text-gray-500 text-sm font-light leading-relaxed line-clamp-2 mb-3">
         {data.description}
       </p>

@@ -1,9 +1,11 @@
 ---
+
 export const prerender = false;
 import { getCollection, getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { SESSION_COOKIE, getUserFromSession } from '../../lib/auth';
 import { getRecipeHearts, getUserHearts } from '../../lib/hearts';
+import AddAllToShoppingListButton from '../../components/AddAllToShoppingListButton.astro';
 
 const { slug } = Astro.params;
 const recipe = await getEntry('recipes', slug as string);
@@ -20,7 +22,7 @@ const user = sessionId ? await getUserFromSession(sessionId) : null;
 const globalHearts = await getRecipeHearts();
 const heartCount = (globalHearts as any)[recipe.slug] || 0;
 
-const { data } = recipe;
+const data: typeof recipe.data & { servings?: number } = recipe.data;
 const { Content } = await recipe.render();
 
 // Calculate total time
@@ -67,8 +69,8 @@ const totalTime = data.prep_time + data.cook_time;
               <p class="meta-value">{data.cook_time} min</p>
             </div>
             <div class="meta-card">
-              <p class="meta-label">Total</p>
-              <p class="meta-value">{totalTime} min</p>
+              <p class="meta-label">Servings</p>
+              <p class="meta-value">{data.servings}</p>
             </div>
           </div>
         </aside>
@@ -89,6 +91,9 @@ const totalTime = data.prep_time + data.cook_time;
               </li>
             ))}
           </ul>
+          <div style="margin-top: 1.5rem;">
+            <AddAllToShoppingListButton ingredients={data.ingredients} client:visible />
+          </div>
         </aside>
 
         <div class="method-card">
@@ -105,6 +110,7 @@ const totalTime = data.prep_time + data.cook_time;
       </section>
     </div>
   </div>
+
 </Layout>
 
 <style>

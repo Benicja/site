@@ -1,0 +1,41 @@
+---
+title: "Victoria Sponge"
+description: "Classic British layer cake."
+featured_image: ""
+prep_time: 20
+cook_time: 25
+servings: 10
+category: "Dessert"
+ingredients:
+  - item: "Caster Sugar"
+    amount: "200g"
+  - item: "Softened Butter"
+    amount: "200g"
+  - item: "Eggs, Beaten"
+    amount: "4"
+  - item: "Self-Raising Flour"
+    amount: "200g"
+  - item: "Baking Powder"
+    amount: "1 tsp"
+  - item: "Milk"
+    amount: "30ml"
+  - item: "Butter (filling)"
+    amount: "100g"
+  - item: "Icing Sugar (filling)"
+    amount: "140g"
+  - item: "Vanilla Extract (optional)"
+    amount: "1 tsp"
+  - item: "Strawberry Jam"
+    amount: "170g"
+  - item: "Double Cream (for whipping)"
+    amount: "150ml"
+  - item: "Icing Sugar (for topping)"
+    amount: "as needed"
+instructions:
+  - step: "Cream Butter and Sugar, add Eggs."
+  - step: "Fold in Flour, Baking Powder. Add Milk."
+  - step: "Bake in two tins at 180°C for 25 min."
+  - step: "Cool, sandwich Jam and Cream, dust with Icing Sugar."
+publishDate: 2026-02-16T08:00:00Z
+draft: false
+---

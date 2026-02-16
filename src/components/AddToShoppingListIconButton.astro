@@ -1,0 +1,5 @@
+---
+import AddToShoppingListIconButton from './AddToShoppingListIconButton.tsx';
+const { ingredients, className = '' } = Astro.props;
+---
+<AddToShoppingListIconButton ingredients={ingredients} className={className} client:visible />

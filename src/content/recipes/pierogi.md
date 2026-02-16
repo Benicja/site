@@ -1,0 +1,46 @@
+---
+title: "Pierogi"
+description: "Polish pierogi with a variety of savoury or sweet fillings."
+featured_image: ""
+prep_time: 40
+cook_time: 15
+servings: 6
+category: "Dinner"
+ingredients:
+  - item: "Plain Flour"
+    amount: "250g"
+  - item: "Oil"
+    amount: "2 tbsp"
+  - item: "Salt"
+    amount: "0.75 tsp"
+  - item: "Boiling Water"
+    amount: "180ml"
+  - item: "Frozen Spinach or Fresh"
+    amount: "280g frozen or 340g fresh"
+  - item: "Oil (filling)"
+    amount: "1 tbsp"
+  - item: "Garlic Cloves"
+    amount: "3"
+  - item: "Salt (filling)"
+    amount: "0.25 tsp"
+  - item: "Pepper"
+    amount: "to taste"
+  - item: "Feta Cheese"
+    amount: "100g"
+  - item: "Cooked Beef (meat filling option)"
+    amount: "800g"
+  - item: "Medium Onions (meat filling)"
+    amount: "2"
+  - item: "Salt (meat)"
+    amount: "1 tsp"
+  - item: "Oil (meat)"
+    amount: "50ml"
+instructions:
+  - step: "Dough: Mix Flour, Water, Oil, Salt. Rest 30 min."
+  - step: "Spinach filling: Sauté Spinach, Garlic, Oil, Salt, Pepper. Add Feta."
+  - step: "Meat filling: Sauté Onion, mix with Beef, Oil, Salt, Pepper."
+  - step: "Roll dough, cut, fill, seal."
+  - step: "Boil until floating. Optionally fry in Butter."
+publishDate: 2026-02-16T08:00:00Z
+draft: false
+---

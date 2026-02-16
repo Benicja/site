@@ -1,0 +1,45 @@
+---
+title: "Paella"
+description: "A Spanish rice dish with chicken, chorizo, peas, and lemon."
+featured_image: ""
+prep_time: 20
+cook_time: 40
+servings: 4
+category: "Dinner"
+ingredients:
+  - item: "Olive Oil"
+    amount: "1 tbsp"
+  - item: "Chicken Breast Fillets, Diced"
+    amount: "2"
+  - item: "Small Onions, Finely Sliced"
+    amount: "2"
+  - item: "Garlic Clove, Crushed"
+    amount: "1"
+  - item: "Cooking Chorizo, Sliced"
+    amount: "140g"
+  - item: "Turmeric"
+    amount: "1 tsp"
+  - item: "Saffron"
+    amount: "pinch"
+  - item: "Paprika"
+    amount: "1 tsp"
+  - item: "Paella Rice"
+    amount: "300g"
+  - item: "Chicken or Vegetable Stock, Hot"
+    amount: "850ml"
+  - item: "Frozen Peas"
+    amount: "200g"
+  - item: "Lemon, Cut into Wedges"
+    amount: "1"
+  - item: "Parsley, Chopped"
+    amount: "10g"
+instructions:
+  - step: "Heat Oil, cook Chicken and Chorizo until browned. Set aside."
+  - step: "Soften Onions, Garlic."
+  - step: "Add Turmeric, Saffron, Paprika, stir in Rice, toast 1–2 min."
+  - step: "Add Stock, Chicken, Chorizo, Peas. Simmer gently, occasionally stir."
+  - step: "Cook 25–30 min."
+  - step: "Serve with Lemon and Parsley."
+publishDate: 2026-02-16T08:00:00Z
+draft: false
+---
