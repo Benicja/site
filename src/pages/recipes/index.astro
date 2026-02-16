@@ -36,6 +36,12 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
                 id="recipe-search" 
                 placeholder="Search recipes..." 
                 class="w-full px-5 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 transition-colors duration-[250ms] font-light text-base"
+                inputmode="search"
+                autocomplete="off"
+                enterkeyhint="search"
+                autocapitalize="off"
+                spellcheck="false"
+                tabindex="0"
               />
               <div class="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,32 +170,40 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         const value = btn.getAttribute('data-value');
         const wasActive = btn.getAttribute('data-active') === 'true';
 
-
-        if (type === 'category') {
-          if (wasActive) {
+        // If already active, just toggle off
+        if (wasActive) {
+          btn.setAttribute('data-active', 'false');
+          if (type === 'category') {
             activeCategory = null;
-            btn.setAttribute('data-active', 'false');
-          } else {
-            // Reset other category buttons
-            filterBtns.forEach(b => {
-              if (b.getAttribute('data-filter') === 'category') {
-                b.setAttribute('data-active', 'false');
-              }
-            });
-            activeCategory = value ? value.toLowerCase() : null;
-            btn.setAttribute('data-active', 'true');
-          }
-        } else if (type === 'hearted') {
-          showHeartedOnly = !showHeartedOnly;
-          btn.setAttribute('data-active', showHeartedOnly.toString());
-          const heartSvg = btn.querySelector('svg');
-          if (showHeartedOnly) {
-            heartSvg?.classList.add('fill-current');
-          } else {
+          } else if (type === 'hearted') {
+            showHeartedOnly = false;
+            const heartSvg = btn.querySelector('svg');
             heartSvg?.classList.remove('fill-current');
           }
+          updateGrid();
+          return;
         }
 
+        // Deselect all filter buttons
+        filterBtns.forEach(b => {
+          b.setAttribute('data-active', 'false');
+          if (b.getAttribute('data-filter') === 'hearted') {
+            const heartSvg = b.querySelector('svg');
+            heartSvg?.classList.remove('fill-current');
+          }
+        });
+        activeCategory = null;
+        showHeartedOnly = false;
+
+        // Activate the clicked button
+        btn.setAttribute('data-active', 'true');
+        if (type === 'category') {
+          activeCategory = value ? value.toLowerCase() : null;
+        } else if (type === 'hearted') {
+          showHeartedOnly = true;
+          const heartSvg = btn.querySelector('svg');
+          heartSvg?.classList.add('fill-current');
+        }
         updateGrid();
       }
 
@@ -212,7 +226,9 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         });
       });
 
-      // Handle Search Input
+
+      // Prevent auto-focus on mobile (do not focus on load)
+      // Only add event listener for input
       searchInput.addEventListener('input', updateGrid);
 
       // Check URL for initial category

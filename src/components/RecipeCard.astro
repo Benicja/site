@@ -61,39 +61,51 @@ const totalTime = data.prep_time + data.cook_time;
   </div>
   
   <!-- Recipe Content -->
-  <div class="p-8 flex flex-col flex-1">
+  <div class="p-5 md:p-8 flex flex-col flex-1">
     <div class="flex-1">
-      <div class="flex items-start gap-2 mb-3">
-        <h3 class="text-xl md:text-2xl font-serif font-medium text-gray-900 group-hover:text-primary-600 transition-colors duration-300 m-0 flex-1">
+      <div class="flex items-start gap-1 mb-1 md:gap-2 md:mb-3 justify-center w-full">
+        <h3 class="text-lg md:text-2xl font-serif font-medium text-gray-900 group-hover:text-primary-600 transition-colors duration-300 m-0 flex-1 text-center">
           <a href={`/recipes/${slug}`} class="after:absolute after:inset-0">
             {data.title}
           </a>
         </h3>
       </div>
-      <p class="text-gray-500 text-sm font-light leading-relaxed line-clamp-2 mb-3">
+      <p class="hidden md:block text-gray-500 text-sm font-light leading-relaxed md:line-clamp-2 mb-3 text-center w-full">
         {data.description}
       </p>
+      <style is:global>
+        /* Ensure ellipsis for line clamping on desktop */
+        @media (min-width: 768px) {
+          .md\:line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+      </style>
     </div>
     
     <!-- Recipe Meta -->
     <div class="pt-3 border-t border-gray-50 flex items-center justify-center -ml-4">
-      <div class="flex items-center gap-6 text-[11px] font-bold uppercase tracking-widest text-gray-400">
-        <div class="flex items-center gap-2">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="flex items-center gap-4 text-[9px] md:text-[11px] font-bold uppercase tracking-widest text-gray-400">
+        <div class="flex items-center gap-1">
+          <svg class="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span class="text-sm font-light lowercase text-gray-600">{totalTime} min</span>
+          <span class="text-xs md:text-sm font-light lowercase text-gray-600">{totalTime} min</span>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1">
           <svg 
-            class="meta-heart-icon w-6 h-6 transition-colors duration-300 text-gray-400"
+            class="meta-heart-icon w-4 h-4 md:w-6 md:h-6 transition-colors duration-300 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
-          <span class="text-sm font-light lowercase text-gray-600 heart-count">{heartCount}</span>
+          <span class="text-xs md:text-sm font-light lowercase text-gray-600 heart-count">{heartCount}</span>
         </div>
       </div>
     </div>
