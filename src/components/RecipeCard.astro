@@ -48,11 +48,11 @@ const totalTime = data.prep_time + data.cook_time;
     )}
     
     <!-- Add Button and Category Overlay -->
-    <div class="absolute top-4 left-4 z-20 flex items-center gap-2">
+    <div class="absolute top-4 left-4 z-20 flex items-center gap-2 md:flex">
       <AddToShoppingListIconButton ingredients={data.ingredients} className="w-8 h-8" />
       <a 
         href={`/recipes?category=${data.category}`}
-        class="category-tag px-3 py-1 bg-white/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-widest text-gray-900 rounded-full shadow-sm hover:bg-white transition-colors cursor-pointer select-none"
+        class="hidden md:inline-block category-tag px-3 py-1 bg-white/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-widest text-gray-900 rounded-full shadow-sm hover:bg-white transition-colors cursor-pointer select-none"
         data-category={data.category}
       >
         {data.category}
@@ -61,14 +61,21 @@ const totalTime = data.prep_time + data.cook_time;
   </div>
   
   <!-- Recipe Content -->
-  <div class="p-5 md:p-8 flex flex-col flex-1">
+  <div class="pt-3 pb-5 md:p-8 flex flex-col flex-1">
     <div class="flex-1">
-      <div class="flex items-start gap-1 mb-1 md:gap-2 md:mb-3 justify-center w-full">
+      <div class="flex flex-col items-center md:gap-2 md:mb-3 justify-center w-full">
         <h3 class="text-lg md:text-2xl font-serif font-medium text-gray-900 group-hover:text-primary-600 transition-colors duration-300 m-0 flex-1 text-center">
           <a href={`/recipes/${slug}`} class="after:absolute after:inset-0">
             {data.title}
           </a>
         </h3>
+        <a 
+          href={`/recipes?category=${data.category}`}
+          class="md:hidden category-tag px-3 py-1 bg-white/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-widest text-gray-900 rounded-full shadow-sm hover:bg-white transition-colors cursor-pointer select-none"
+          data-category={data.category}
+        >
+          {data.category}
+        </a>
       </div>
       <p class="hidden md:block text-gray-500 text-sm font-light leading-relaxed md:line-clamp-2 mb-3 text-center w-full">
         {data.description}

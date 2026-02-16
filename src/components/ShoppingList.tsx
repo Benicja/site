@@ -80,7 +80,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
             placeholder="Add custom item..."
             value={input}
             onChange={e => setInput(e.target.value)}
-            autoFocus
+            autoFocus={typeof window !== 'undefined' && window.innerWidth >= 768}
           />
           <button
             type="submit"
