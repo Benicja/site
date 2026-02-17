@@ -196,8 +196,8 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
 
     // Sort categories based on CATEGORY_ORDER
     return Object.entries(groups).sort(([a], [b]) => {
-      const indexA = CATEGORY_ORDER.indexOf(a);
-      const indexB = CATEGORY_ORDER.indexOf(b);
+      const indexA = CATEGORY_ORDER.indexOf(a as any);
+      const indexB = CATEGORY_ORDER.indexOf(b as any);
       if (indexA === -1 && indexB === -1) return a.localeCompare(b);
       if (indexA === -1) return 1;
       if (indexB === -1) return -1;
