@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   type ShoppingItem, 
   CATEGORY_ORDER, 
@@ -7,6 +8,7 @@ import {
   formatQuantity,
   shouldHideAmount
 } from '../lib/shopping';
+import { toast } from '../lib/notifications';
 
 const STORAGE_KEY = 'benicja_shopping_list';
 const UTILITY_STORAGE_KEY = 'benicja_utility_list';
@@ -33,6 +35,11 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
 
+  // Log state for debugging
+  useEffect(() => {
+    console.log('ShoppingList state:', { activeTab, itemsCount: items.length, utilityItemsCount: utilityItems.length, open });
+  }, [activeTab, items.length, utilityItems.length, open]);
+
   // List to display/modify based on active tab
   const currentList = activeTab === 'shopping' ? items : utilityItems;
   const setCurrentList = activeTab === 'shopping' ? setItems : setUtilityItems;
@@ -40,7 +47,30 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
   useEffect(() => {
     if (open) {
       setItems(loadList(STORAGE_KEY));
-      setUtilityItems(loadList(UTILITY_STORAGE_KEY));
+      const loaded = loadList(UTILITY_STORAGE_KEY);
+      
+      // Populate default utility items if empty
+      if (loaded.length === 0) {
+        const defaultItems = [
+          { amount: '', item: 'Grapes' },
+          { amount: '6', item: 'Bell Peppers' },
+          { amount: '', item: 'Broccoli' },
+          { amount: '', item: 'Greek Yoghurt' },
+          { amount: '', item: 'Toilet Paper' },
+          { amount: '', item: 'Shower Gel' },
+          { amount: '', item: 'Protein Oats' },
+          { amount: '', item: 'Deodorant' },
+          { amount: '', item: 'Hand Soap' },
+          { amount: '', item: 'Toothpaste' },
+          { amount: '', item: 'Kitchen Towel' },
+          { amount: '', item: 'Sweetcorn' }
+        ];
+        const populated = aggregateIngredients([], defaultItems);
+        setUtilityItems(populated);
+        saveList(UTILITY_STORAGE_KEY, populated);
+      } else {
+        setUtilityItems(loaded);
+      }
     }
   }, [open]);
 
@@ -68,6 +98,34 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
 
   function removeItem(id: string) {
     setCurrentList(list => list.filter(item => item.id !== id));
+  }
+
+  function moveItemsToShopping(itemsToMove: ShoppingItem[]) {
+    console.log('moveItemsToShopping called with:', itemsToMove);
+    if (itemsToMove.length === 0) return;
+    // Convert utility items to ingredient format for aggregateIngredients
+    const itemsToAdd = itemsToMove.map(item => {
+      // Reconstruct the amount string from amount and unit (e.g., "6kg" or "1.5L")
+      let amountStr = '';
+      if (item.amount !== null && item.amount !== undefined) {
+        amountStr = String(item.amount);
+        if (item.unit) {
+          amountStr += item.unit;
+        }
+      }
+      return {
+        amount: amountStr,
+        item: item.baseItem
+      };
+    });
+    console.log('itemsToAdd:', itemsToAdd);
+    const updated = aggregateIngredients(items, itemsToAdd);
+    console.log('updated shopping list:', updated);
+    setItems(updated);
+    const message = itemsToMove.length === 1 
+      ? `Added ${itemsToMove[0].baseItem} to Shopping List`
+      : `Added ${itemsToMove.length} items to Shopping List`;
+    toast(message, 'success');
   }
 
   function startEditing(item: ShoppingItem, displayQty: string) {
@@ -149,13 +207,15 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div 
-      className="fixed inset-0 z-[1000000] flex items-end justify-center md:items-center bg-black/20 backdrop-blur-[2px]"
+      className="fixed inset-0 flex items-end justify-center md:items-center bg-black/20 backdrop-blur-[2px]"
+      style={{ zIndex: 9999999 }}
       onClick={onClose}
     >
       <div 
         className="w-full max-w-md bg-white rounded-t-2xl md:rounded-2xl shadow-2xl px-4 py-3 relative animate-fadeInUp flex flex-col max-h-[90vh]"
+        style={{ zIndex: 99999999 }}
         onClick={e => e.stopPropagation()}
       >
         <button
@@ -200,8 +260,110 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
           ) : (
             <>
               <div className="space-y-3">
-                {groupedItems.map(([category, catItems]) => (
-                  <div key={category} className="space-y-1">
+                {activeTab === 'utility' && utilityItems.length > 0 && (
+                  <button
+                    onClick={() => moveItemsToShopping(utilityItems)}
+                    className="w-full py-2 px-3 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                    Add All to Shopping
+                  </button>
+                )}
+                {activeTab === 'utility' ? (
+                  <ul className="grid gap-0.5">
+                    {currentList.map(item => {
+                      const showAmount = item.amount !== null && !shouldHideAmount(item.baseItem, item.amount, item.unit, item.category);
+                      
+                      let displayQty = '';
+                      if (showAmount && item.amount !== null) {
+                        let finalAmount = item.amount;
+                        let finalUnit = item.unit;
+                        if (item.unit && item.amount >= 1000) {
+                          const lowerUnit = item.unit.toLowerCase();
+                          if (lowerUnit === 'g') {
+                            finalAmount = item.amount / 1000;
+                            finalUnit = 'kg';
+                          } else if (lowerUnit === 'ml') {
+                            finalAmount = item.amount / 1000;
+                            finalUnit = 'L';
+                          }
+                        }
+                        
+                        const qtyStr = formatQuantity(finalAmount, !finalUnit);
+                        const isAbbreviation = finalUnit && /^(g|ml|kg|l)$/i.test(finalUnit);
+                        displayQty = finalUnit ? (isAbbreviation ? `${qtyStr}${finalUnit}` : `${qtyStr} ${finalUnit}`) : `x${qtyStr}`;
+                        if (displayQty === 'x1') displayQty = '';
+                      }
+
+                      return (
+                        <li key={item.id} className="flex items-center gap-3 p-1 group hover:bg-gray-50 rounded-lg transition-colors">
+                          <div className="relative flex items-center justify-center">
+                            <input
+                              type="checkbox"
+                              checked={item.checked}
+                              onChange={() => toggleItem(item.id)}
+                              className="peer appearance-none w-[18px] h-[18px] border-2 border-gray-200 rounded-[3px] checked:bg-gray-900 checked:border-gray-900 transition-all cursor-pointer"
+                            />
+                            <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                          {editingId === item.id ? (
+                            <input
+                              className="flex-1 text-[13px] font-medium bg-white border border-gray-200 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-gray-900/50"
+                              value={editValue}
+                              onChange={e => setEditValue(e.target.value)}
+                              onBlur={() => saveEdit(item.id)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') saveEdit(item.id);
+                                if (e.key === 'Escape') cancelEditing();
+                              }}
+                              autoFocus
+                            />
+                          ) : (
+                            <>
+                              <span 
+                                className={
+                                  `flex-1 text-[13px] font-medium transition-all cursor-pointer ${item.checked ? 'line-through text-gray-400' : 'text-gray-900'}`
+                                }
+                                onClick={() => startEditing(item, displayQty)}
+                              >
+                                {displayQty && (
+                                  <span className={`mr-1.5 tabular-nums ${item.checked ? 'text-gray-400' : 'text-gray-900'}`}>
+                                    {displayQty}
+                                  </span>
+                                )}
+                                {item.baseItem}
+                              </span>
+                              <button
+                                className="bg-gray-900 text-white hover:bg-gray-800 transition-all p-1 rounded"
+                                onClick={() => moveItemsToShopping([item])}
+                                aria-label="Add to Shopping"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                              </button>
+                              <button
+                                className="text-gray-400 hover:text-red-500 transition-all p-0.5"
+                                onClick={() => removeItem(item.id)}
+                                aria-label="Remove"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  groupedItems.map(([category, catItems]) => (
+                    <div key={category} className="space-y-1">
                     <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-1">
                       {category}
                     </h3>
@@ -270,26 +432,15 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                                   )}
                                   {item.baseItem}
                                 </span>
-                                <div className="flex items-center gap-0.5 ml-1">
-                                  <button
-                                    className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-gray-900 transition-all p-0.5"
-                                    onClick={() => startEditing(item, displayQty)}
-                                    aria-label="Edit"
-                                  >
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                    </svg>
-                                  </button>
-                                  <button
-                                    className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all p-0.5"
-                                    onClick={() => removeItem(item.id)}
-                                    aria-label="Remove"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                  </button>
-                                </div>
+                                <button
+                                  className="text-gray-400 hover:text-red-500 transition-all p-0.5"
+                                  onClick={() => removeItem(item.id)}
+                                  aria-label="Remove"
+                                >
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
                               </>
                             )}
                           </li>
@@ -297,7 +448,8 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                       })}
                     </ul>
                   </div>
-                ))}
+                  ))
+                )}
               </div>
             </>
           )}
@@ -344,6 +496,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -77,7 +77,7 @@ export default function AddAllToShoppingListButton({ ingredients, className = ''
           <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v8m-4-4h8" />
         </svg>
-        Add All to List
+        Add All to Shopping
       </button>
     </>
   );

@@ -96,6 +96,7 @@ const CATEGORY_MAPPING: Record<string, Category> = {
   'parmesan': 'Dairy & Eggs',
   'cheddar': 'Dairy & Eggs',
   'yogurt': 'Dairy & Eggs',
+  'yoghurt': 'Dairy & Eggs',
   'cream': 'Dairy & Eggs',
   'sour cream': 'Dairy & Eggs',
   'feta': 'Dairy & Eggs',
