@@ -6,7 +6,7 @@ prep_time: 10
 cook_time: 15
 servings: 10
 category: "Breakfast"
-publishDate: 2026-02-17
+
 ingredients:
   - item: "Plain Flour"
     amount: "250g"
@@ -26,9 +26,13 @@ ingredients:
     amount: "as needed"
   - item: "Berries (to garnish)"
     amount: "as needed"
+
 instructions:
   - step: "Mix Flour, Baking Powder, Sugar, Salt."
   - step: "Whisk Eggs, Milk, combine. Fold into dry mix."
   - step: "Cook in oiled pan, flip when bubbling."
   - step: "Serve with Syrup, Berries."
+
+publishDate: 2026-02-17
 ---
+

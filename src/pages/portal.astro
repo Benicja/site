@@ -2,7 +2,6 @@
 export const prerender = false;
 
 import Layout from '../layouts/Layout.astro';
-import RecipeCMSCard from '../components/RecipeCMSCard.astro';
 import { SESSION_COOKIE, getApprovedUser, getUserFromSession } from '../lib/auth';
 import { getAlbums, getDisplayDate, getDisplayTitle } from '../lib/gallery';
 import { supabaseAdmin, type AccessRequest, type ApprovedUser } from '../lib/supabase';
@@ -70,9 +69,6 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
 <Layout title="Site Administration" description="Manage gallery and site configuration" user={user} isAdmin={isAdmin}>
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <div class="space-y-12">
-      <!-- Recipe Management -->
-      <RecipeCMSCard />
-
       <!-- Access Requests -->
       <section class="bg-white border border-gray-100 rounded-3xl p-8 md:p-12 shadow-sm">
         <div class="flex items-center gap-3 mb-8">
@@ -302,8 +298,18 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
 
         <!-- Current Recipes List -->
         <div id="recipes-section" class="content-section hidden">
-          <h2 class="text-sm font-bold text-gray-400 uppercase tracking-[0.2em] mb-8">Current Recipes</h2>
-          <p class="text-xs text-gray-500 mb-4">Drag to reorder</p>
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h2 class="text-sm font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Current Recipes</h2>
+              <p class="text-xs text-gray-500">Drag to reorder</p>
+            </div>
+            <button 
+              id="create-recipe-btn"
+              class="text-xs font-bold px-4 py-2 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors uppercase tracking-tighter"
+            >
+              + Create New
+            </button>
+          </div>
           <div id="recipes-list" class="space-y-4">
             {recipes.map(recipe => (
               <div 
@@ -326,7 +332,13 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
                   </div>
                 </div>
                 <div class="flex gap-2">
-                  <span class="text-[9px] font-bold px-2 py-1 bg-gray-100 text-gray-500 rounded uppercase tracking-tighter">Recipe</span>
+                  <button 
+                    class="edit-recipe-btn text-[9px] font-bold px-2 py-1 bg-blue-100 text-blue-600 rounded uppercase tracking-tighter hover:bg-blue-200 transition-colors"
+                    data-recipe-slug={recipe.slug}
+                    title="Edit this recipe"
+                  >
+                    Edit
+                  </button>
                   <button 
                     class="delete-recipe-btn text-[9px] font-bold px-2 py-1 bg-red-100 text-red-600 rounded uppercase tracking-tighter hover:bg-red-200 transition-colors"
                     data-recipe-slug={recipe.slug}
@@ -339,6 +351,117 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
             ))}
           </div>
         </div>
+
+        <!-- Recipe Edit Modal -->
+        <div id="recipe-edit-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h3 class="text-lg font-bold text-gray-900">Edit Recipe</h3>
+              <button id="close-edit-modal" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <form id="recipe-edit-form" class="p-6 space-y-4">
+              <input type="hidden" id="edit-recipe-slug" />
+              
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-2">Title</label>
+                <input type="text" id="edit-recipe-title" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-2">Description</label>
+                <textarea id="edit-recipe-description" rows="3" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" required></textarea>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-2">Category</label>
+                  <select id="edit-recipe-category" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Dinner">Dinner</option>
+                    <option value="Dessert">Dessert</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-2">Prep Time (mins)</label>
+                  <input type="number" id="edit-recipe-prep-time" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="0" required />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-2">Cook Time (mins)</label>
+                  <input type="number" id="edit-recipe-cook-time" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="0" required />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-2">Servings</label>
+                  <input type="number" id="edit-recipe-servings" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="1" />
+                </div>
+              </div>
+
+              <!-- Featured Image Section -->
+              <div class="border-t border-gray-200 pt-4 mt-6">
+                <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-4">Featured Image</label>
+                <div class="space-y-4">
+                  <!-- Image Preview -->
+                  <div id="image-preview-container" class="relative w-full max-w-xs rounded-lg overflow-hidden bg-gray-100 aspect-video flex items-center justify-center border border-gray-200">
+                    <img id="image-preview" src="" alt="Preview" class="w-full h-full object-cover hidden" />
+                    <span id="image-preview-placeholder" class="text-gray-400 text-sm">No image</span>
+                  </div>
+                  
+                  <!-- Upload Input -->
+                  <div class="flex gap-2">
+                    <input type="file" id="recipe-image-upload" accept="image/*" class="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+                    <button type="button" id="clear-image-btn" class="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-xs font-bold uppercase tracking-tighter">
+                      Clear
+                    </button>
+                  </div>
+                  
+                  <!-- Or URL option -->
+                  <div>
+                    <p class="text-xs text-gray-500 mb-2">Or paste image URL:</p>
+                    <input type="text" id="edit-recipe-featured-image-url" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="https://..." />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ingredients Section -->
+              <div class="border-t border-gray-200 pt-4 mt-6">
+                <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-4">Ingredients</label>
+                <div id="ingredients-list" class="space-y-2">
+                  <!-- Ingredients will be added here dynamically -->
+                </div>
+                <button type="button" id="add-ingredient-btn" class="mt-4 text-xs font-bold px-3 py-1 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors uppercase tracking-tighter">
+                  + Add
+                </button>
+              </div>
+
+              <!-- Instructions Section -->
+              <div class="border-t border-gray-200 pt-4 mt-6">
+                <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-4">Instructions</label>
+                <div id="instructions-list" class="space-y-2">
+                  <!-- Instructions will be added here dynamically -->
+                </div>
+                <button type="button" id="add-instruction-btn" class="mt-4 text-xs font-bold px-3 py-1 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors uppercase tracking-tighter">
+                  + Add
+                </button>
+              </div>
+
+              <div class="flex gap-3 pt-4 border-t border-gray-200 mt-6">
+                <button type="submit" class="flex-1 px-6 py-2 bg-blue-600 text-white font-bold uppercase tracking-widest rounded-lg hover:bg-blue-700 transition-colors">
+                  Save Changes
+                </button>
+                <button type="button" id="cancel-edit-btn" class="flex-1 px-6 py-2 bg-gray-200 text-gray-700 font-bold uppercase tracking-widest rounded-lg hover:bg-gray-300 transition-colors">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </section>
     </div>
   </div>
@@ -349,38 +472,498 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
     function initializePortal() {
       // Initialize toggle buttons
       const toggleButtons = document.querySelectorAll('.toggle-content-btn');
+      
+      const switchTab = (target) => {
+        // Hide all sections
+        document.querySelectorAll('.content-section').forEach(section => {
+          section.classList.add('hidden');
+        });
+        
+        // Show selected section
+        const targetSection = document.getElementById(`${target}-section`);
+        if (targetSection) {
+          targetSection.classList.remove('hidden');
+        }
+        
+        // Update button styles
+        toggleButtons.forEach(button => {
+          if (button.dataset.target === target) {
+            button.classList.remove('bg-gray-200', 'text-gray-600', 'hover:bg-gray-300');
+            button.classList.add('bg-gray-900', 'text-white');
+          } else {
+            button.classList.add('bg-gray-200', 'text-gray-600', 'hover:bg-gray-300');
+            button.classList.remove('bg-gray-900', 'text-white');
+          }
+        });
+
+        // Save preference to localStorage
+        localStorage.setItem('adminTabPreference', target);
+      };
+
+      // Restore saved tab preference
+      const savedTab = localStorage.getItem('adminTabPreference') || 'recipes';
+      switchTab(savedTab);
+
       toggleButtons.forEach(btn => {
         if (btn._hasHandler) return;
 
         btn.addEventListener('click', (e) => {
           e.preventDefault();
           const target = btn.dataset.target;
-          
-          // Hide all sections
-          document.querySelectorAll('.content-section').forEach(section => {
-            section.classList.add('hidden');
-          });
-          
-          // Show selected section
-          const targetSection = document.getElementById(`${target}-section`);
-          if (targetSection) {
-            targetSection.classList.remove('hidden');
+          if (target) {
+            switchTab(target);
           }
-          
-          // Update button styles
-          toggleButtons.forEach(button => {
-            if (button.dataset.target === target) {
-              button.classList.remove('bg-gray-200', 'text-gray-600', 'hover:bg-gray-300');
-              button.classList.add('bg-gray-900', 'text-white');
-            } else {
-              button.classList.add('bg-gray-200', 'text-gray-600', 'hover:bg-gray-300');
-              button.classList.remove('bg-gray-900', 'text-white');
-            }
-          });
         });
 
         btn._hasHandler = true;
       });
+
+      // Recipe edit modal handlers
+      const editModal = document.getElementById('recipe-edit-modal');
+      const closeModalBtn = document.getElementById('close-edit-modal');
+      const cancelEditBtn = document.getElementById('cancel-edit-btn');
+      const editForm = document.getElementById('recipe-edit-form');
+
+      const closeEditModal = () => {
+        if (editModal) editModal.classList.add('hidden');
+        if (editForm) {
+          editForm.reset();
+          editForm._uploadedImageFile = null;
+          editForm._isCreateMode = false;
+          document.getElementById('edit-recipe-slug').value = '';
+        }
+        const imagePreview = document.getElementById('image-preview');
+        const imagePreviewPlaceholder = document.getElementById('image-preview-placeholder');
+        if (imagePreview) imagePreview.classList.add('hidden');
+        if (imagePreviewPlaceholder) imagePreviewPlaceholder.classList.remove('hidden');
+      };
+
+      // Create recipe button handler
+      const createRecipeBtn = document.getElementById('create-recipe-btn');
+      if (createRecipeBtn && !createRecipeBtn._hasHandler) {
+        createRecipeBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          // Reset form for create mode
+          if (editForm) {
+            editForm.reset();
+            editForm._isCreateMode = true;
+            editForm._uploadedImageFile = null;
+            document.getElementById('edit-recipe-slug').value = '';
+            
+            // Clear ingredients and instructions
+            const ingredientsList = document.getElementById('ingredients-list');
+            const instructionsList = document.getElementById('instructions-list');
+            if (ingredientsList) ingredientsList.innerHTML = '';
+            if (instructionsList) instructionsList.innerHTML = '';
+            
+            // Clear image preview
+            const imagePreview = document.getElementById('image-preview');
+            const imagePreviewPlaceholder = document.getElementById('image-preview-placeholder');
+            const imageUrlInput = document.getElementById('edit-recipe-featured-image-url');
+            const fileInput = document.getElementById('recipe-image-upload');
+            
+            if (imagePreview) imagePreview.classList.add('hidden');
+            if (imagePreviewPlaceholder) imagePreviewPlaceholder.classList.remove('hidden');
+            if (imageUrlInput) imageUrlInput.value = '';
+            if (fileInput) fileInput.value = '';
+          }
+          
+          // Show modal
+          if (editModal) editModal.classList.remove('hidden');
+        });
+        createRecipeBtn._hasHandler = true;
+      }
+
+      if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeEditModal);
+      }
+
+      if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          closeEditModal();
+        });
+      }
+
+      // Close modal on backdrop click
+      if (editModal) {
+        editModal.addEventListener('click', (e) => {
+          if (e.target === editModal) {
+            closeEditModal();
+          }
+        });
+      }
+
+      const editRecipeButtons = document.querySelectorAll('.edit-recipe-btn');
+      editRecipeButtons.forEach(btn => {
+        if (btn._hasHandler) return;
+
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const slug = btn.dataset.recipeSlug;
+          if (!slug) return;
+
+          try {
+            const response = await fetch(`/api/recipes/get-recipe?slug=${encodeURIComponent(slug)}`);
+            const recipe = await response.json();
+
+            if (!response.ok) {
+              throw new Error(recipe.error || 'Failed to load recipe');
+            }
+
+            // Populate form fields
+            document.getElementById('edit-recipe-slug').value = slug;
+            document.getElementById('edit-recipe-title').value = recipe.title;
+            document.getElementById('edit-recipe-description').value = recipe.description;
+            document.getElementById('edit-recipe-category').value = recipe.category;
+            document.getElementById('edit-recipe-prep-time').value = recipe.prep_time;
+            document.getElementById('edit-recipe-cook-time').value = recipe.cook_time;
+            document.getElementById('edit-recipe-servings').value = recipe.servings || '';
+            
+            // Populate featured image
+            const imagePreview = document.getElementById('image-preview');
+            const imagePreviewPlaceholder = document.getElementById('image-preview-placeholder');
+            const imageUrlInput = document.getElementById('edit-recipe-featured-image-url');
+            
+            if (recipe.featured_image) {
+              imageUrlInput.value = recipe.featured_image;
+              imagePreview.src = recipe.featured_image;
+              imagePreview.classList.remove('hidden');
+              imagePreviewPlaceholder.classList.add('hidden');
+            } else {
+              imageUrlInput.value = '';
+              imagePreview.classList.add('hidden');
+              imagePreviewPlaceholder.classList.remove('hidden');
+            }
+            
+            // Reset file input and uploaded flag
+            const fileInput = document.getElementById('recipe-image-upload');
+            if (fileInput) fileInput.value = '';
+            editForm._uploadedImagePath = null;
+
+            // Populate ingredients
+            const ingredientsList = document.getElementById('ingredients-list');
+            if (ingredientsList) {
+              ingredientsList.innerHTML = '';
+              const ingredients = recipe.ingredients || [];
+              ingredients.forEach((ing, idx) => {
+                addIngredientField(ing.item, ing.amount);
+              });
+            }
+
+            // Populate instructions
+            const instructionsList = document.getElementById('instructions-list');
+            if (instructionsList) {
+              instructionsList.innerHTML = '';
+              const instructions = recipe.instructions || [];
+              instructions.forEach((ins) => {
+                addInstructionField(ins.step);
+              });
+            }
+
+            // Show modal
+            if (editModal) {
+              editModal.classList.remove('hidden');
+            }
+          } catch (err) {
+            alert(`Error loading recipe: ${err.message}`);
+          }
+        });
+
+        btn._hasHandler = true;
+      });
+
+      // Helper function to create ingredient field
+      const addIngredientField = (item = '', amount = '') => {
+        const ingredientsList = document.getElementById('ingredients-list');
+        if (!ingredientsList) return;
+
+        const ingredientDiv = document.createElement('div');
+        ingredientDiv.className = 'ingredient-item flex gap-2 items-end';
+        ingredientDiv.innerHTML = `
+          <input type="text" placeholder="Item name" value="${item}" class="flex-1 px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 ingredient-item-input" />
+          <input type="text" placeholder="Amount" value="${amount}" class="w-24 px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 ingredient-amount-input" />
+          <button type="button" class="remove-ingredient-btn px-2 py-2 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        `;
+
+        ingredientsList.appendChild(ingredientDiv);
+
+        const removeBtn = ingredientDiv.querySelector('.remove-ingredient-btn');
+        if (removeBtn) {
+          removeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            ingredientDiv.remove();
+          });
+        }
+      };
+
+      // Helper function to create instruction field
+      const addInstructionField = (step = '') => {
+        const instructionsList = document.getElementById('instructions-list');
+        if (!instructionsList) return;
+
+        const instructionDiv = document.createElement('div');
+        instructionDiv.className = 'instruction-item flex gap-2 items-end';
+        instructionDiv.innerHTML = `
+          <textarea placeholder="Step description" class="flex-1 px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 instruction-step-input resize-none" rows="2">${step}</textarea>
+          <button type="button" class="remove-instruction-btn px-2 py-2 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        `;
+
+        instructionsList.appendChild(instructionDiv);
+
+        const removeBtn = instructionDiv.querySelector('.remove-instruction-btn');
+        if (removeBtn) {
+          removeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            instructionDiv.remove();
+          });
+        }
+      };
+
+      // Add ingredient button
+      const addIngredientBtn = document.getElementById('add-ingredient-btn');
+      if (addIngredientBtn && !addIngredientBtn._hasHandler) {
+        addIngredientBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          addIngredientField();
+        });
+        addIngredientBtn._hasHandler = true;
+      }
+
+      // Add instruction button
+      const addInstructionBtn = document.getElementById('add-instruction-btn');
+      if (addInstructionBtn && !addInstructionBtn._hasHandler) {
+        addInstructionBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          addInstructionField();
+        });
+        addInstructionBtn._hasHandler = true;
+      }
+
+      if (editForm) {
+        if (editForm._formSubmitHandler) return;
+        
+        editForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const slug = document.getElementById('edit-recipe-slug').value;
+          const isCreate = editForm._isCreateMode || !slug;
+
+          // Collect ingredients
+          const ingredients = [];
+          const ingredientItems = document.querySelectorAll('.ingredient-item');
+          ingredientItems.forEach(item => {
+            const ingredientInput = item.querySelector('.ingredient-item-input');
+            const amountInput = item.querySelector('.ingredient-amount-input');
+            if (ingredientInput && amountInput && (ingredientInput.value || amountInput.value)) {
+              ingredients.push({
+                item: ingredientInput.value,
+                amount: amountInput.value
+              });
+            }
+          });
+
+          // Collect instructions
+          const instructions = [];
+          const instructionItems = document.querySelectorAll('.instruction-item');
+          instructionItems.forEach(item => {
+            const stepInput = item.querySelector('.instruction-step-input');
+            if (stepInput && stepInput.value.trim()) {
+              instructions.push({
+                step: stepInput.value.trim()
+              });
+            }
+          });
+
+          // Handle image upload and form submission
+          let featuredImageUrl = document.getElementById('edit-recipe-featured-image-url').value;
+          let recipeSlug = slug;
+          
+          try {
+            // If creating new recipe, create it first
+            if (isCreate) {
+              const createData = {
+                title: document.getElementById('edit-recipe-title').value,
+                description: document.getElementById('edit-recipe-description').value,
+                category: document.getElementById('edit-recipe-category').value,
+                prep_time: parseInt(document.getElementById('edit-recipe-prep-time').value),
+                cook_time: parseInt(document.getElementById('edit-recipe-cook-time').value),
+                servings: parseInt(document.getElementById('edit-recipe-servings').value) || 0,
+                featured_image: featuredImageUrl,
+                ingredients,
+                instructions
+              };
+
+              const createResponse = await fetch('/api/recipes/create-recipe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(createData)
+              });
+
+              const createResult = await createResponse.json();
+
+              if (!createResponse.ok) {
+                throw new Error(createResult.error || 'Failed to create recipe');
+              }
+
+              recipeSlug = createResult.slug;
+            }
+
+            // Handle image upload if file was selected
+            if (editForm._uploadedImageFile) {
+              try {
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', editForm._uploadedImageFile);
+                uploadFormData.append('slug', recipeSlug);
+                
+                const uploadResponse = await fetch('/api/recipes/upload-image', {
+                  method: 'POST',
+                  body: uploadFormData
+                });
+
+                const uploadResult = await uploadResponse.json();
+
+                if (!uploadResponse.ok) {
+                  throw new Error(uploadResult.error || 'Failed to upload image');
+                }
+
+                featuredImageUrl = uploadResult.url;
+
+                // Update recipe with the image URL
+                const updateData = {
+                  slug: recipeSlug,
+                  title: document.getElementById('edit-recipe-title').value,
+                  description: document.getElementById('edit-recipe-description').value,
+                  category: document.getElementById('edit-recipe-category').value,
+                  prep_time: parseInt(document.getElementById('edit-recipe-prep-time').value),
+                  cook_time: parseInt(document.getElementById('edit-recipe-cook-time').value),
+                  servings: parseInt(document.getElementById('edit-recipe-servings').value) || 0,
+                  featured_image: uploadResult.url,
+                  ingredients,
+                  instructions
+                };
+
+                const updateResponse = await fetch('/api/recipes/update-recipe', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(updateData)
+                });
+
+                if (!updateResponse.ok) {
+                  throw new Error('Failed to update recipe with image');
+                }
+              } catch (uploadErr) {
+                alert(`Image upload failed: ${uploadErr.message}`);
+                return;
+              }
+            } else if (!isCreate) {
+              // Update existing recipe without image upload
+              const formData = {
+                slug: recipeSlug,
+                title: document.getElementById('edit-recipe-title').value,
+                description: document.getElementById('edit-recipe-description').value,
+                category: document.getElementById('edit-recipe-category').value,
+                prep_time: parseInt(document.getElementById('edit-recipe-prep-time').value),
+                cook_time: parseInt(document.getElementById('edit-recipe-cook-time').value),
+                servings: parseInt(document.getElementById('edit-recipe-servings').value) || 0,
+                featured_image: featuredImageUrl,
+                ingredients,
+                instructions
+              };
+
+              const response = await fetch('/api/recipes/update-recipe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+              });
+
+              if (!response.ok) {
+                throw new Error('Failed to update recipe');
+              }
+            }
+
+            closeEditModal();
+            setTimeout(() => window.location.reload(), 500);
+          } catch (err) {
+            alert(`Error: ${err.message}`);
+          }
+        });
+        editForm._formSubmitHandler = true;
+      }
+
+      // Image upload handlers
+      const fileInput = document.getElementById('recipe-image-upload');
+      const imagePreview = document.getElementById('image-preview');
+      const imagePreviewPlaceholder = document.getElementById('image-preview-placeholder');
+      const imageUrlInput = document.getElementById('edit-recipe-featured-image-url');
+      const clearImageBtn = document.getElementById('clear-image-btn');
+
+      if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+          const file = (e.target).files?.[0];
+          if (!file) return;
+
+          // Validate file type
+          if (!file.type.startsWith('image/')) {
+            alert('Please select a valid image file');
+            fileInput.value = '';
+            return;
+          }
+
+          // Preview image
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const dataUrl = event.target?.result;
+            if (dataUrl) {
+              imagePreview.src = dataUrl;
+              imagePreview.classList.remove('hidden');
+              imagePreviewPlaceholder.classList.add('hidden');
+              imageUrlInput.value = '';
+              editForm._uploadedImagePath = null;
+              editForm._uploadedImageFile = file;
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      if (clearImageBtn) {
+        clearImageBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (fileInput) fileInput.value = '';
+          imagePreview.classList.add('hidden');
+          imagePreviewPlaceholder.classList.remove('hidden');
+          imageUrlInput.value = '';
+          editForm._uploadedImagePath = null;
+          editForm._uploadedImageFile = null;
+        });
+      }
+
+      if (imageUrlInput) {
+        imageUrlInput.addEventListener('change', (e) => {
+          const url = (e.target).value;
+          if (url) {
+            imagePreview.src = url;
+            imagePreview.classList.remove('hidden');
+            imagePreviewPlaceholder.classList.add('hidden');
+            if (fileInput) fileInput.value = '';
+            editForm._uploadedImageFile = null;
+          } else {
+            imagePreview.classList.add('hidden');
+            imagePreviewPlaceholder.classList.remove('hidden');
+          }
+        });
+      }
+
       const makeAdminButtons = document.querySelectorAll('.make-admin-btn');
       makeAdminButtons.forEach((btn) => {
         if (btn._hasHandler) return;

@@ -1,0 +1,80 @@
+import type { APIRoute } from 'astro';
+import { isUserAdmin, SESSION_COOKIE } from '../../../lib/auth';
+import { promises as fs } from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+
+export const prerender = false;
+
+export const POST: APIRoute = async ({ request, cookies }) => {
+  const sessionId = cookies.get(SESSION_COOKIE)?.value;
+
+  if (!sessionId) {
+    return new Response(JSON.stringify({ error: 'No session found. Please sign in again.' }), { status: 401 });
+  }
+
+  const isAdmin = await isUserAdmin(sessionId);
+  if (!isAdmin) {
+    return new Response(JSON.stringify({ error: 'Unauthorized: Admin role required' }), { status: 403 });
+  }
+
+  try {
+    // Parse form data
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    const slug = formData.get('slug') as string;
+
+    if (!file) {
+      return new Response(JSON.stringify({ error: 'No file provided' }), { status: 400 });
+    }
+
+    if (!slug) {
+      return new Response(JSON.stringify({ error: 'Recipe slug required' }), { status: 400 });
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      return new Response(JSON.stringify({ error: 'File must be an image' }), { status: 400 });
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return new Response(JSON.stringify({ error: 'Image must be smaller than 5MB' }), { status: 400 });
+    }
+
+    // Create upload directory if it doesn't exist
+    const uploadsDir = path.join(process.cwd(), 'public', 'images', 'recipes');
+    try {
+      await fs.mkdir(uploadsDir, { recursive: true });
+    } catch (error: any) {
+      if (error.code !== 'EEXIST') {
+        throw error;
+      }
+    }
+
+    // Generate unique filename
+    const ext = file.name.split('.').pop() || 'jpg';
+    const timestamp = Date.now();
+    const random = crypto.randomBytes(4).toString('hex');
+    const filename = `${slug}-${timestamp}-${random}.${ext}`;
+    const filePath = path.join(uploadsDir, filename);
+
+    // Convert file to buffer and write
+    const buffer = Buffer.from(await file.arrayBuffer());
+    await fs.writeFile(filePath, buffer);
+
+    // Return the public URL
+    const publicUrl = `/images/recipes/${filename}`;
+
+    return new Response(JSON.stringify({
+      success: true,
+      url: publicUrl,
+      filename
+    }));
+
+  } catch (error: any) {
+    console.error('Image upload error:', error);
+    return new Response(JSON.stringify({ error: error.message || 'Failed to upload image' }), { status: 500 });
+  }
+};
