@@ -53,9 +53,9 @@ export default function AddToShoppingListIconButton({ ingredients, className = '
       const msg = addedCount > 0 
         ? `${addedCount} new item${addedCount > 1 ? 's' : ''} added ${changedCount > 0 ? `& ${changedCount} updated` : ''}`
         : `${changedCount} item${changedCount > 1 ? 's' : ''} updated`;
-      toast(msg, 'success');
+      toast(msg, 'success', addedCount);
     } else {
-      toast('All ingredients are already in your shopping list!', 'info');
+      toast('All ingredients are already in your shopping list!', 'info', 0);
     }
   }
 
@@ -91,7 +91,7 @@ export default function AddToShoppingListIconButton({ ingredients, className = '
           stroke="currentColor"
         >
           <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v8m-4-4h8" />
+          <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v8m-4-4h8" />
         </svg>
       </button>
     </>

@@ -371,8 +371,37 @@ if (resolveAuth) {
       <slot />
     </main>
 
+    <style is:global>
+      .shopping-list-widget-container {
+        position: fixed;
+        bottom: 0.5rem;
+        right: 0.5rem;
+        z-index: 2147483647 !important;
+        pointer-events: auto !important;
+        isolation: isolate !important;
+        mix-blend-mode: initial !important;
+        transform: translateZ(0) !important;
+        will-change: z-index, transform !important;
+        view-transition-name: shopping-list-widget;
+      }
+
+      /* Force the widget to stay on top of all view transition layers */
+      ::view-transition-group(shopping-list-widget),
+      ::view-transition-old(shopping-list-widget),
+      ::view-transition-new(shopping-list-widget) {
+        z-index: 2147483647 !important;
+      }
+      
+      @media (min-width: 768px) {
+        .shopping-list-widget-container {
+          bottom: 1rem;
+          right: 1rem;
+        }
+      }
+    </style>
+
     <div 
-      class="fixed bottom-2 right-2 md:bottom-4 md:right-4 z-[2147483647] shopping-list-widget" 
+      class="shopping-list-widget-container shopping-list-widget" 
       transition:persist="shopping-list-widget"
     >
       <ShoppingListButton client:load />

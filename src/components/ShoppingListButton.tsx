@@ -12,14 +12,38 @@ export default function ShoppingListButton({ className = '' }: Props) {
   useEffect(() => {
     const handleNotification = (event: any) => {
       const { type, addedCount } = event.detail;
-      if (type === 'success' && addedCount) {
+      // Only increment badge count if the shopping list is NOT open
+      if (type === 'success' && addedCount && !open) {
         setBadgeCount(prev => prev + addedCount);
       }
     };
 
+    // Close modal on any link click to prevent flickering during navigation
+    const handleLinkClick = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest('a');
+      if (link && open) {
+        setOpen(false);
+      }
+    };
+
+    // Also close on Astro navigation events
+    const handleBeforeSwap = () => {
+      setOpen(false);
+    };
+
     window.addEventListener('benicja:notification', handleNotification);
-    return () => window.removeEventListener('benicja:notification', handleNotification);
-  }, []);
+    document.addEventListener('click', handleLinkClick, true);
+    document.addEventListener('astro:before-swap', handleBeforeSwap);
+    window.addEventListener('astro:navigate', handleBeforeSwap);
+    
+    return () => {
+      window.removeEventListener('benicja:notification', handleNotification);
+      document.removeEventListener('click', handleLinkClick, true);
+      document.removeEventListener('astro:before-swap', handleBeforeSwap);
+      window.removeEventListener('astro:navigate', handleBeforeSwap);
+    };
+  }, [open]);
 
   const handleOpen = () => {
     setOpen(true);

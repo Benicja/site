@@ -125,7 +125,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
     const message = itemsToMove.length === 1 
       ? `Added ${itemsToMove[0].baseItem} to Shopping List`
       : `Added ${itemsToMove.length} items to Shopping List`;
-    toast(message, 'success');
+    toast(message, 'success', itemsToMove.length);
   }
 
   function startEditing(item: ShoppingItem, displayQty: string) {
@@ -205,17 +205,15 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
     });
   }, [currentList]);
 
-  if (!open) return null;
+  if (!open || typeof document === 'undefined') return null;
 
   return createPortal(
     <div 
-      className="fixed inset-0 flex items-end justify-center md:items-center bg-black/20 backdrop-blur-[2px]"
-      style={{ zIndex: 9999999 }}
+      className="fixed inset-0 z-[1000000] flex items-end justify-center md:items-center bg-black/20 backdrop-blur-[2px]"
       onClick={onClose}
     >
       <div 
         className="w-full max-w-md bg-white rounded-t-2xl md:rounded-2xl shadow-2xl px-4 py-3 relative animate-fadeInUp flex flex-col max-h-[90vh]"
-        style={{ zIndex: 99999999 }}
         onClick={e => e.stopPropagation()}
       >
         <button
