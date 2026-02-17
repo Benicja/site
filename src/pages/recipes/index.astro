@@ -5,6 +5,7 @@ import Layout from '../../layouts/Layout.astro';
 import RecipeCard from '../../components/RecipeCard.astro';
 import { SESSION_COOKIE, getUserFromSession } from '../../lib/auth';
 import { getRecipeHearts, getUserHearts } from '../../lib/hearts';
+import { supabaseAdmin } from '../../lib/supabase';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -13,7 +14,17 @@ const sessionId = Astro.cookies.get(SESSION_COOKIE)?.value;
 const user = sessionId ? await getUserFromSession(sessionId) : null;
 
 // Get all recipes
-const recipes = await getCollection('recipes');
+const allRecipes = await getCollection('recipes');
+
+// Get deleted recipes from Supabase
+const { data: deletedRecipes } = await supabaseAdmin
+  .from('deleted_recipes')
+  .select('recipe_slug');
+
+const deletedSlugs = new Set((deletedRecipes || []).map(d => d.recipe_slug));
+
+// Filter out deleted recipes
+const recipes = allRecipes.filter(recipe => !deletedSlugs.has(recipe.slug));
 
 // Load custom recipe order if it exists
 let recipeOrder: string[] = [];

@@ -22,6 +22,16 @@ if (!isAdmin) {
 const albums = await getAlbums();
 const allRecipes = await getCollection('recipes');
 
+// Get deleted recipes from Supabase
+const { data: deletedRecipes } = await supabaseAdmin
+  .from('deleted_recipes')
+  .select('recipe_slug');
+
+const deletedSlugs = new Set((deletedRecipes || []).map(d => d.recipe_slug));
+
+// Filter out deleted recipes
+const activeRecipes = allRecipes.filter(recipe => !deletedSlugs.has(recipe.slug));
+
 // Load custom recipe order if it exists
 let recipeOrder: string[] = [];
 try {
@@ -33,7 +43,7 @@ try {
 }
 
 // Sort recipes: first by custom order if exists, then by publishDate (newest first), then alphabetically
-const recipes = allRecipes.sort((a, b) => {
+const recipes = activeRecipes.sort((a, b) => {
   const aIndex = recipeOrder.indexOf(a.slug);
   const bIndex = recipeOrder.indexOf(b.slug);
   
