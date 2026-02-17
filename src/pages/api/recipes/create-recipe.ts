@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { isUserAdmin, SESSION_COOKIE } from '../../../lib/auth';
+import { supabaseAdmin } from '../../../lib/supabase';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -114,21 +115,28 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       return new Response(JSON.stringify({ error: 'Could not create recipe file' }), { status: 500 });
     }
 
-    // Add new recipe to the TOP of recipe order
+    // Add new recipe to the TOP of recipe order in Supabase
     try {
-      const orderPath = path.join(process.cwd(), '.recipe-order.json');
-      let recipeOrder: string[] = [];
-      try {
-        const orderData = JSON.parse(await fs.readFile(orderPath, 'utf-8'));
-        recipeOrder = orderData.slugs || [];
-      } catch {
-        // File doesn't exist, start with empty array
-      }
+      // Get current order
+      const { data: orderData } = await supabaseAdmin
+        .from('recipe_order')
+        .select('order_slugs')
+        .eq('id', 'primary')
+        .single();
+      
+      let recipeOrder: string[] = orderData?.order_slugs || [];
       
       // Add new slug to the beginning if not already present
       if (!recipeOrder.includes(slug)) {
         recipeOrder.unshift(slug);
-        await fs.writeFile(orderPath, JSON.stringify({ slugs: recipeOrder }, null, 2), 'utf-8');
+        
+        const { error } = await supabaseAdmin
+          .from('recipe_order')
+          .upsert({ id: 'primary', order_slugs: recipeOrder, updated_at: new Date().toISOString() }, { onConflict: 'id' });
+        
+        if (error) {
+          console.error('Warning: Could not update recipe order:', error);
+        }
       }
     } catch (orderError: any) {
       console.error('Warning: Could not update recipe order:', orderError);

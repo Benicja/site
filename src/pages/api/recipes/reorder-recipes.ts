@@ -1,11 +1,8 @@
 import type { APIRoute } from 'astro';
 import { isUserAdmin, SESSION_COOKIE } from '../../../lib/auth';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { supabaseAdmin } from '../../../lib/supabase';
 
 export const prerender = false;
-
-const RECIPE_ORDER_FILE = path.join(process.cwd(), '.recipe-order.json');
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   const sessionId = cookies.get(SESSION_COOKIE)?.value;
@@ -25,13 +22,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   }
 
   try {
-    const orderData = {
-      lastUpdated: new Date().toISOString(),
-      slugs: slugs
-    };
+    // Store the recipe order in Supabase
+    const { error } = await supabaseAdmin
+      .from('recipe_order')
+      .upsert(
+        { id: 'primary', order_slugs: slugs, updated_at: new Date().toISOString() },
+        { onConflict: 'id' }
+      );
 
-    // Write the order to a JSON file
-    await fs.writeFile(RECIPE_ORDER_FILE, JSON.stringify(orderData, null, 2));
+    if (error) {
+      console.error('Supabase error:', error);
+      return new Response(JSON.stringify({ error: error.message || 'Failed to save recipe order' }), { status: 500 });
+    }
 
     return new Response(JSON.stringify({ 
       success: true, 
@@ -46,19 +48,25 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
 export const GET: APIRoute = async () => {
   try {
-    try {
-      const data = await fs.readFile(RECIPE_ORDER_FILE, 'utf-8');
-      const orderData = JSON.parse(data);
-      return new Response(JSON.stringify(orderData));
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
-        // File doesn't exist yet, return empty order
-        return new Response(JSON.stringify({ slugs: [], lastUpdated: null }));
-      }
+    const { data, error } = await supabaseAdmin
+      .from('recipe_order')
+      .select('order_slugs, updated_at')
+      .eq('id', 'primary')
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
       throw error;
     }
+
+    if (data) {
+      return new Response(JSON.stringify({ slugs: data.order_slugs || [], lastUpdated: data.updated_at }));
+    }
+
+    // No order found, return empty
+    return new Response(JSON.stringify({ slugs: [], lastUpdated: null }));
+
   } catch (error: any) {
-    console.error('Read error:', error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    console.error('Get order error:', error);
+    return new Response(JSON.stringify({ slugs: [], lastUpdated: null }));
   }
 };

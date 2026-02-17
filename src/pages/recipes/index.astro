@@ -6,8 +6,6 @@ import RecipeCard from '../../components/RecipeCard.astro';
 import { SESSION_COOKIE, getUserFromSession } from '../../lib/auth';
 import { getRecipeHearts, getUserHearts } from '../../lib/hearts';
 import { supabaseAdmin } from '../../lib/supabase';
-import { promises as fs } from 'fs';
-import path from 'path';
 
 // Get current user
 const sessionId = Astro.cookies.get(SESSION_COOKIE)?.value;
@@ -26,14 +24,20 @@ const deletedSlugs = new Set((deletedRecipes || []).map(d => d.recipe_slug));
 // Filter out deleted recipes
 const recipes = allRecipes.filter(recipe => !deletedSlugs.has(recipe.slug));
 
-// Load custom recipe order if it exists
+// Load custom recipe order from Supabase
 let recipeOrder: string[] = [];
 try {
-  const orderPath = path.join(process.cwd(), '.recipe-order.json');
-  const orderData = JSON.parse(await fs.readFile(orderPath, 'utf-8'));
-  recipeOrder = orderData.slugs || [];
+  const { data: orderData } = await supabaseAdmin
+    .from('recipe_order')
+    .select('order_slugs')
+    .eq('id', 'primary')
+    .single();
+  
+  if (orderData) {
+    recipeOrder = orderData.order_slugs || [];
+  }
 } catch (error) {
-  // File doesn't exist or can't be read, use default sorting
+  // No order exists yet, use default sorting
 }
 
 // Sort recipes: first by custom order if exists, then by publishDate (newest first), then alphabetically
