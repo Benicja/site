@@ -1,0 +1,27 @@
+---
+title: "Jumbo Oat Porridge"
+description: "A hearty bowl of jumbo oats prepared with milk, fresh bananas, and mixed frozen berries for the perfect morning start."
+featured_image: "/images/recipes/porridge.png"
+prep_time: 2
+cook_time: 12
+servings: 2
+publishDate: 2026-02-11
+category: "Breakfast"
+ingredients:
+  - item: "Jumbo oats"
+    amount: "2 cups"
+  - item: "Milk"
+    amount: "3 cups"
+  - item: "Bananas"
+    amount: "2, chopped"
+  - item: "Frozen mixed berries"
+    amount: "1 cup"
+instructions:
+  - step: "Prepare a saucepan."
+  - step: "Add 2 cups jumbo oats and 3 cups milk to the saucepan."
+  - step: "Wait until the mixture is almost done, cooking over medium heat and stirring occasionally."
+  - step: "Then add chopped bananas and frozen mixed berries."
+  - step: "Keep the heat on low for 2 more minutes and serve."
+---
+
+This recipe uses jumbo oats for a thicker texture, and the addition of frozen berries and banana gives it a natural sweetness without needing extra sugar.

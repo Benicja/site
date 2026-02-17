@@ -10,11 +10,14 @@ import { getRecipeHearts, getUserHearts } from '../../lib/hearts';
 const sessionId = Astro.cookies.get(SESSION_COOKIE)?.value;
 const user = sessionId ? await getUserFromSession(sessionId) : null;
 
-// Get all recipes and sort by date (newest first)
+// Get all recipes and sort by date (newest first), with alphabetical as secondary
 const recipes = await getCollection('recipes');
-const sortedRecipes = recipes.sort((a, b) => 
-  (b.data.publishDate?.getTime() || 0) - (a.data.publishDate?.getTime() || 0)
-);
+const sortedRecipes = recipes.sort((a, b) => {
+  const dateDiff = (b.data.publishDate?.getTime() || 0) - (a.data.publishDate?.getTime() || 0);
+  if (dateDiff !== 0) return dateDiff;
+  // If dates are same, sort by title alphabetically
+  return a.data.title.localeCompare(b.data.title);
+});
 
 // Get heart data
 const globalHearts = await getRecipeHearts();
