@@ -1,7 +1,7 @@
 ---
 title: "Paella"
 description: "A Spanish rice dish with chicken, chorizo, peas, and lemon."
-featured_image: ""
+featured_image: "/images/recipes/paella.jpg"
 prep_time: 20
 cook_time: 40
 servings: 4

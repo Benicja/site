@@ -1,7 +1,7 @@
 ---
-title: "Tomato Bean Dish"
-description: "A nourishing, one-pan tomato and bean stew loaded with vegetables and smoky spices."
-featured_image: ""
+title: "Gnocchi Bean Dish"
+description: "A nourishing, one-pan gnocchi, tomato, and bean stew loaded with vegetables and smoky spices."
+featured_image: "/images/recipes/tomato_bean.jpg"
 prep_time: 5
 cook_time: 25
 servings: 4

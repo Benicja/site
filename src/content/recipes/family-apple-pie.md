@@ -1,7 +1,7 @@
 ---
 title: "Family Apple Pie"
 description: "Classic apple pie."
-featured_image: ""
+featured_image: "/images/recipes/pie.jpeg"
 prep_time: 25
 cook_time: 50
 servings: 8

@@ -1,7 +1,7 @@
 ---
 title: "Shortbread"
 description: "Classic buttery shortbread, soft and crumbly."
-featured_image: ""
+featured_image: "/images/recipes/shortbread.jpeg"
 prep_time: 10
 cook_time: 30
 servings: 18

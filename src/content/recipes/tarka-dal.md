@@ -1,7 +1,7 @@
 ---
 title: "Tarka Dal"
 description: "A comforting Indian lentil dish, perfect for a delicious vegetarian meal or with chicken for added protein. Serve with rice for a complete meal."
-featured_image: ""
+featured_image: "/images/recipes/tarka.jpg"
 prep_time: 10
 cook_time: 35
 servings: 4

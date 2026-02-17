@@ -1,7 +1,7 @@
 ---
 title: "Chicken Korma"
 description: "A creamy chicken curry."
-featured_image: ""
+featured_image: "/images/recipes/no_photo.png"
 prep_time: 10
 cook_time: 25
 servings: 4

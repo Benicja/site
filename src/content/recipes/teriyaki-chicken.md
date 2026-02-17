@@ -1,7 +1,7 @@
 ---
 title: "Teriyaki Chicken"
 description: "A sweet and sticky teriyaki chicken stir fry."
-featured_image: ""
+featured_image: "/images/recipes/teryaki.jpg"
 prep_time: 15
 cook_time: 25
 servings: 4

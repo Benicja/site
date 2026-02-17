@@ -1,7 +1,7 @@
 ---
 title: "Chicken Tikka Masala"
 description: "Classic chicken tikka masala, rich in spices and tomato."
-featured_image: ""
+featured_image: "/images/recipes/no_photo.png"
 prep_time: 20
 cook_time: 35
 servings: 4

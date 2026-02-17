@@ -1,7 +1,7 @@
 ---
 title: "Gosia's Meringue Cake"
 description: "A striking meringue cake."
-featured_image: ""
+featured_image: "/images/recipes/cream_cake.jpg"
 prep_time: 25
 cook_time: 90
 servings: 12

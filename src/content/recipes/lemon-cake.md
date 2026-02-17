@@ -1,7 +1,7 @@
 ---
 title: "Lemon Cake"
 description: "A moist and zesty lemon (and lime) cake."
-featured_image: ""
+featured_image: "/images/recipes/no_photo.png"
 prep_time: 15
 cook_time: 45
 servings: 8

@@ -1,7 +1,7 @@
 ---
 title: "Pierogi"
 description: "Polish pierogi with a variety of savoury or sweet fillings."
-featured_image: ""
+featured_image: "/images/recipes/pierogi_fried.jpg"
 prep_time: 40
 cook_time: 15
 servings: 6

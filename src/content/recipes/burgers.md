@@ -1,7 +1,7 @@
 ---
 title: "Burgers"
 description: "Homemade burgers with all the classic fixings."
-featured_image: ""
+featured_image: "/images/recipes/burgers.jpg"
 prep_time: 10
 cook_time: 15
 servings: 4

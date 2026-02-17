@@ -1,7 +1,7 @@
 ---
 title: "Kladdkaka"
 description: "A gooey Swedish chocolate cake."
-featured_image: ""
+featured_image: "/images/recipes/klakada.jpg"
 prep_time: 10
 cook_time: 20
 servings: 8

@@ -1,7 +1,7 @@
 ---
 title: "American Pancakes"
 description: "Fluffy pancakes."
-featured_image: ""
+featured_image: "/images/recipes/pancakes.png"
 prep_time: 10
 cook_time: 15
 servings: 10
