@@ -140,6 +140,25 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
                   </div>
                 </div>
                 <div class="flex items-center gap-3">
+                  {approved.role !== 'admin' ? (
+                    <button
+                      class="make-admin-btn px-5 py-2 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest rounded-full hover:bg-gray-800 transition-colors"
+                      data-approved-id={approved.id}
+                      data-approved-email={approved.email}
+                    >
+                      Make Admin
+                    </button>
+                  ) : (
+                    approved.email !== user?.user_email && (
+                      <button
+                        class="remove-admin-btn px-5 py-2 bg-white text-gray-900 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-200 hover:border-gray-900 transition-colors"
+                        data-approved-id={approved.id}
+                        data-approved-email={approved.email}
+                      >
+                        Remove Admin
+                      </button>
+                    )
+                  )}
                   <button
                     class="revoke-user-btn px-5 py-2 bg-white text-red-600 text-xs font-bold uppercase tracking-widest rounded-full border border-red-100 hover:border-red-300 hover:text-red-700 transition-colors"
                     data-approved-id={approved.id}
@@ -234,6 +253,84 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
     let draggedElement = null;
 
     function initializePortal() {
+      const makeAdminButtons = document.querySelectorAll('.make-admin-btn');
+      makeAdminButtons.forEach((btn) => {
+        if (btn._hasHandler) return;
+
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const approvedId = btn.dataset.approvedId;
+          const approvedEmail = btn.dataset.approvedEmail || 'this user';
+          if (!approvedId) return;
+
+          if (!confirm(`Promote ${approvedEmail} to Admin?`)) return;
+
+          const row = btn.closest('.approved-row');
+          const status = row?.querySelector('.revoke-status');
+          if (status) status.textContent = 'Updating...';
+
+          try {
+            const response = await fetch('/api/admin/update-role', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: approvedId, role: 'admin' })
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.error || 'Failed to update user role');
+            }
+
+            if (status) status.textContent = 'User role updated';
+            window.location.reload();
+          } catch (err) {
+            if (status) status.textContent = 'Error updating';
+            alert(err.message || 'Failed to update user role');
+          }
+        });
+
+        btn._hasHandler = true;
+      });
+
+      const removeAdminButtons = document.querySelectorAll('.remove-admin-btn');
+      removeAdminButtons.forEach((btn) => {
+        if (btn._hasHandler) return;
+
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const approvedId = btn.dataset.approvedId;
+          const approvedEmail = btn.dataset.approvedEmail || 'this user';
+          if (!approvedId) return;
+
+          if (!confirm(`Remove admin privileges from ${approvedEmail}?`)) return;
+
+          const row = btn.closest('.approved-row');
+          const status = row?.querySelector('.revoke-status');
+          if (status) status.textContent = 'Updating...';
+
+          try {
+            const response = await fetch('/api/admin/update-role', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: approvedId, role: 'user' })
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.error || 'Failed to update user role');
+            }
+
+            if (status) status.textContent = 'User role updated';
+            window.location.reload();
+          } catch (err) {
+            if (status) status.textContent = 'Error updating';
+            alert(err.message || 'Failed to update user role');
+          }
+        });
+
+        btn._hasHandler = true;
+      });
+
       const revokeButtons = document.querySelectorAll('.revoke-user-btn');
       revokeButtons.forEach((btn) => {
         if (btn._hasHandler) return;
