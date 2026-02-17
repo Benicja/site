@@ -6,6 +6,9 @@ import RecipeCMSCard from '../components/RecipeCMSCard.astro';
 import { SESSION_COOKIE, getApprovedUser, getUserFromSession } from '../lib/auth';
 import { getAlbums, getDisplayDate, getDisplayTitle } from '../lib/gallery';
 import { supabaseAdmin, type AccessRequest, type ApprovedUser } from '../lib/supabase';
+import { getCollection } from 'astro:content';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 const sessionId = Astro.cookies.get(SESSION_COOKIE)?.value;
 const user = sessionId ? await getUserFromSession(sessionId) : null;
@@ -18,6 +21,37 @@ if (!isAdmin) {
 }
 
 const albums = await getAlbums();
+const allRecipes = await getCollection('recipes');
+
+// Load custom recipe order if it exists
+let recipeOrder: string[] = [];
+try {
+  const orderPath = path.join(process.cwd(), '.recipe-order.json');
+  const orderData = JSON.parse(await fs.readFile(orderPath, 'utf-8'));
+  recipeOrder = orderData.slugs || [];
+} catch (error) {
+  // File doesn't exist or can't be read, use default sorting
+}
+
+// Sort recipes: first by custom order if exists, then by publishDate (newest first), then alphabetically
+const recipes = allRecipes.sort((a, b) => {
+  const aIndex = recipeOrder.indexOf(a.slug);
+  const bIndex = recipeOrder.indexOf(b.slug);
+  
+  // If both are in custom order, sort by that
+  if (aIndex !== -1 && bIndex !== -1) {
+    return aIndex - bIndex;
+  }
+  // If only one is in custom order, it comes first
+  if (aIndex !== -1) return -1;
+  if (bIndex !== -1) return 1;
+  
+  // Otherwise, sort by publishDate (newest first), then alphabetically
+  const dateDiff = (b.data.publishDate?.getTime() || 0) - (a.data.publishDate?.getTime() || 0);
+  if (dateDiff !== 0) return dateDiff;
+  return a.data.title.localeCompare(b.data.title);
+});
+
 const { data: accessRequests } = await supabaseAdmin
   .from('access_requests')
   .select('*')
@@ -211,39 +245,99 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
         </div>
       </section>
 
-      <!-- Current Albums List -->
+      <!-- Albums/Recipes Toggle -->
       <section>
-        <h2 class="text-sm font-bold text-gray-400 uppercase tracking-[0.2em] mb-8">Current Albums ({albums.length})</h2>
-        <p class="text-xs text-gray-500 mb-4">Drag to reorder</p>
-        <div id="albums-list" class="space-y-4">
-          {albums.map(album => (
-            <div 
-              draggable="true"
-              class="album-item flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors cursor-move hover:shadow-md"
-              data-album-id={album.google_album_id}
-            >
-              <div class="flex items-center gap-4 flex-1">
-                <div class="w-2 h-2 bg-gray-300 rounded-full flex-shrink-0"></div>
-                <div class="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden">
-                  <img src={`/api/gallery/image?url=${encodeURIComponent(album.cover_image_url)}&w=200`} alt="" class="w-full h-full object-cover" />
+        <div class="flex items-center gap-4 mb-8">
+          <button 
+            id="toggle-albums-btn"
+            class="toggle-content-btn px-6 py-2 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest rounded-full transition-colors"
+            data-target="albums"
+          >
+            Albums ({albums.length})
+          </button>
+          <button 
+            id="toggle-recipes-btn"
+            class="toggle-content-btn px-6 py-2 bg-gray-200 text-gray-600 text-xs font-bold uppercase tracking-widest rounded-full hover:bg-gray-300 transition-colors"
+            data-target="recipes"
+          >
+            Recipes ({recipes.length})
+          </button>
+        </div>
+
+        <!-- Current Albums List -->
+        <div id="albums-section" class="content-section">
+          <h2 class="text-sm font-bold text-gray-400 uppercase tracking-[0.2em] mb-8">Current Albums</h2>
+          <p class="text-xs text-gray-500 mb-4">Drag to reorder</p>
+          <div id="albums-list" class="space-y-4">
+            {albums.map(album => (
+              <div 
+                draggable="true"
+                class="album-item flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors cursor-move hover:shadow-md"
+                data-album-id={album.google_album_id}
+              >
+                <div class="flex items-center gap-4 flex-1">
+                  <div class="w-2 h-2 bg-gray-300 rounded-full flex-shrink-0"></div>
+                  <div class="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden">
+                    <img src={`/api/gallery/image?url=${encodeURIComponent(album.cover_image_url)}&w=200`} alt="" class="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-gray-900">{getDisplayTitle(album.title)}</h3>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-widest">{getDisplayDate(album.title, album.created_at)} • {album.photo_count} Photos</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 class="text-sm font-bold text-gray-900">{getDisplayTitle(album.title)}</h3>
-                  <p class="text-[10px] text-gray-400 uppercase tracking-widest">{getDisplayDate(album.title, album.created_at)} • {album.photo_count} Photos</p>
+                <div class="flex gap-2">
+                  <span class="text-[9px] font-bold px-2 py-1 bg-gray-100 text-gray-500 rounded uppercase tracking-tighter">Synced</span>
+                  <button 
+                    class="delete-album-btn text-[9px] font-bold px-2 py-1 bg-red-100 text-red-600 rounded uppercase tracking-tighter hover:bg-red-200 transition-colors"
+                    data-album-id={album.google_album_id}
+                    title="Delete this album"
+                  >
+                    Remove
+                  </button>
                 </div>
               </div>
-              <div class="flex gap-2">
-                <span class="text-[9px] font-bold px-2 py-1 bg-gray-100 text-gray-500 rounded uppercase tracking-tighter">Synced</span>
-                <button 
-                  class="delete-album-btn text-[9px] font-bold px-2 py-1 bg-red-100 text-red-600 rounded uppercase tracking-tighter hover:bg-red-200 transition-colors"
-                  data-album-id={album.google_album_id}
-                  title="Delete this album"
-                >
-                  Remove
-                </button>
+            ))}
+          </div>
+        </div>
+
+        <!-- Current Recipes List -->
+        <div id="recipes-section" class="content-section hidden">
+          <h2 class="text-sm font-bold text-gray-400 uppercase tracking-[0.2em] mb-8">Current Recipes</h2>
+          <p class="text-xs text-gray-500 mb-4">Drag to reorder</p>
+          <div id="recipes-list" class="space-y-4">
+            {recipes.map(recipe => (
+              <div 
+                draggable="true"
+                class="recipe-item flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors cursor-move hover:shadow-md"
+                data-recipe-slug={recipe.slug}
+              >
+                <div class="flex items-center gap-4 flex-1">
+                  <div class="w-2 h-2 bg-gray-300 rounded-full flex-shrink-0"></div>
+                  <div class="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
+                    {recipe.data.featured_image ? (
+                      <img src={recipe.data.featured_image} alt="" class="w-full h-full object-cover" />
+                    ) : (
+                      <span class="text-2xl">🍳</span>
+                    )}
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-gray-900">{recipe.data.title}</h3>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-widest">{recipe.data.category} • {recipe.data.prep_time + recipe.data.cook_time} mins</p>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <span class="text-[9px] font-bold px-2 py-1 bg-gray-100 text-gray-500 rounded uppercase tracking-tighter">Recipe</span>
+                  <button 
+                    class="delete-recipe-btn text-[9px] font-bold px-2 py-1 bg-red-100 text-red-600 rounded uppercase tracking-tighter hover:bg-red-200 transition-colors"
+                    data-recipe-slug={recipe.slug}
+                    title="Delete this recipe"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
     </div>
@@ -253,6 +347,40 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
     let draggedElement = null;
 
     function initializePortal() {
+      // Initialize toggle buttons
+      const toggleButtons = document.querySelectorAll('.toggle-content-btn');
+      toggleButtons.forEach(btn => {
+        if (btn._hasHandler) return;
+
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const target = btn.dataset.target;
+          
+          // Hide all sections
+          document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.add('hidden');
+          });
+          
+          // Show selected section
+          const targetSection = document.getElementById(`${target}-section`);
+          if (targetSection) {
+            targetSection.classList.remove('hidden');
+          }
+          
+          // Update button styles
+          toggleButtons.forEach(button => {
+            if (button.dataset.target === target) {
+              button.classList.remove('bg-gray-200', 'text-gray-600', 'hover:bg-gray-300');
+              button.classList.add('bg-gray-900', 'text-white');
+            } else {
+              button.classList.add('bg-gray-200', 'text-gray-600', 'hover:bg-gray-300');
+              button.classList.remove('bg-gray-900', 'text-white');
+            }
+          });
+        });
+
+        btn._hasHandler = true;
+      });
       const makeAdminButtons = document.querySelectorAll('.make-admin-btn');
       makeAdminButtons.forEach((btn) => {
         if (btn._hasHandler) return;
@@ -540,6 +668,54 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
         btn._hasHandler = true;
       });
 
+      const deleteRecipeButtons = document.querySelectorAll('.delete-recipe-btn');
+      deleteRecipeButtons.forEach(btn => {
+        if (btn._hasHandler) return;
+
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const slug = btn.dataset.recipeSlug;
+          const recipeRow = btn.closest('div[class*="flex"][class*="items-center"]');
+          const recipeTitle = recipeRow ? recipeRow.querySelector('h3')?.textContent : 'Unknown';
+
+          if (!confirm(`Delete recipe "${recipeTitle}"?`)) return;
+
+          btn.disabled = true;
+          const originalText = btn.textContent;
+          btn.classList.add('opacity-50');
+          btn.textContent = 'Deleting...';
+
+          try {
+            const response = await fetch('/api/recipes/delete-recipe', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ slug })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              const recipeRow = btn.closest('div[class*="flex"][class*="items-center"]');
+              if (recipeRow) {
+                recipeRow.style.opacity = '0.3';
+                recipeRow.style.textDecoration = 'line-through';
+              }
+              btn.textContent = 'Deleted';
+              setTimeout(() => window.location.reload(), 1000);
+            } else {
+              throw new Error(result.error || 'Failed to delete recipe');
+            }
+          } catch (err) {
+            alert(`Error: ${err.message}`);
+            btn.disabled = false;
+            btn.classList.remove('opacity-50');
+            btn.textContent = originalText;
+          }
+        });
+
+        btn._hasHandler = true;
+      });
+
       const albumItems = document.querySelectorAll('.album-item');
       albumItems.forEach(item => {
         if (item._dragInitialized) return;
@@ -590,6 +766,73 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ albumIds: newOrder })
+              });
+
+              const result = await response.json();
+              if (!result.success) {
+                throw new Error(result.error || 'Failed to save order');
+              }
+            } catch (err) {
+              alert(`Error saving order: ${err.message}`);
+              window.location.reload();
+            }
+          }
+          item.classList.remove('border-blue-400', 'border-2');
+        });
+
+        item._dragInitialized = true;
+      });
+
+      const recipeItems = document.querySelectorAll('.recipe-item');
+      recipeItems.forEach(item => {
+        if (item._dragInitialized) return;
+
+        item.addEventListener('dragstart', (e) => {
+          draggedElement = item;
+          item.style.opacity = '0.5';
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        item.addEventListener('dragend', () => {
+          draggedElement = null;
+          item.style.opacity = '1';
+          recipeItems.forEach(el => el.classList.remove('border-blue-400', 'border-2'));
+        });
+
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (item !== draggedElement) {
+            item.classList.add('border-blue-400', 'border-2');
+          }
+        });
+
+        item.addEventListener('dragleave', () => {
+          item.classList.remove('border-blue-400', 'border-2');
+        });
+
+        item.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          if (draggedElement && draggedElement !== item) {
+            const recipesList = document.getElementById('recipes-list');
+            const items = Array.from(recipesList.querySelectorAll('.recipe-item'));
+            const draggedIndex = items.indexOf(draggedElement);
+            const targetIndex = items.indexOf(item);
+
+            if (draggedIndex > targetIndex) {
+              item.parentNode.insertBefore(draggedElement, item);
+            } else {
+              item.parentNode.insertBefore(draggedElement, item.nextSibling);
+            }
+
+            const newOrder = Array.from(recipesList.querySelectorAll('.recipe-item'))
+              .map(el => el.dataset.recipeSlug);
+
+            try {
+              const response = await fetch('/api/recipes/reorder-recipes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ slugs: newOrder })
               });
 
               const result = await response.json();

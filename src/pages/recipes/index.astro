@@ -5,17 +5,42 @@ import Layout from '../../layouts/Layout.astro';
 import RecipeCard from '../../components/RecipeCard.astro';
 import { SESSION_COOKIE, getUserFromSession } from '../../lib/auth';
 import { getRecipeHearts, getUserHearts } from '../../lib/hearts';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 // Get current user
 const sessionId = Astro.cookies.get(SESSION_COOKIE)?.value;
 const user = sessionId ? await getUserFromSession(sessionId) : null;
 
-// Get all recipes and sort by date (newest first), with alphabetical as secondary
+// Get all recipes
 const recipes = await getCollection('recipes');
+
+// Load custom recipe order if it exists
+let recipeOrder: string[] = [];
+try {
+  const orderPath = path.join(process.cwd(), '.recipe-order.json');
+  const orderData = JSON.parse(await fs.readFile(orderPath, 'utf-8'));
+  recipeOrder = orderData.slugs || [];
+} catch (error) {
+  // File doesn't exist or can't be read, use default sorting
+}
+
+// Sort recipes: first by custom order if exists, then by publishDate (newest first), then alphabetically
 const sortedRecipes = recipes.sort((a, b) => {
+  const aIndex = recipeOrder.indexOf(a.slug);
+  const bIndex = recipeOrder.indexOf(b.slug);
+  
+  // If both are in custom order, sort by that
+  if (aIndex !== -1 && bIndex !== -1) {
+    return aIndex - bIndex;
+  }
+  // If only one is in custom order, it comes first
+  if (aIndex !== -1) return -1;
+  if (bIndex !== -1) return 1;
+  
+  // Otherwise, sort by publishDate (newest first), then alphabetically
   const dateDiff = (b.data.publishDate?.getTime() || 0) - (a.data.publishDate?.getTime() || 0);
   if (dateDiff !== 0) return dateDiff;
-  // If dates are same, sort by title alphabetically
   return a.data.title.localeCompare(b.data.title);
 });
 
