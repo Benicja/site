@@ -1,11 +1,12 @@
 ---
 title: "Gosia's Meringue Cake"
-description: "A striking meringue cake."
+description: "Meringue, cream and berries cake. But as a warning: it will not last long."
 featured_image: "/images/recipes/cream_cake.jpg"
 prep_time: 25
 cook_time: 90
 servings: 12
 category: "Dessert"
+publishDate: 2026-02-06
 ingredients:
   - item: "Egg Whites (6 large eggs)"
     amount: "250g"
@@ -17,7 +18,7 @@ ingredients:
     amount: "1 tsp"
   - item: "Vinegar or Lemon Juice"
     amount: "1 tsp"
-  - item: "30% Cream"
+  - item: "Double Cream"
     amount: "450ml"
   - item: "Mascarpone"
     amount: "250g"
@@ -30,6 +31,4 @@ instructions:
   - step: "Pipe onto lined tray. Bake at 110°C for 90 min."
   - step: "Whip Cream, fold in Mascarpone, Smoothie."
   - step: "Layer with Fruit, chill."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

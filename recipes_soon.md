@@ -615,7 +615,7 @@ Polish pierogi with a variety of savoury or sweet fillings.
 - 2 Tablespoon Oil
 - 0.75 Teaspoon Salt
 - 180ml Boiling Water
-- 280g Frozen Spinach or 340g Fresh
+- 280g Frozen Spinach
 - 1 Tablespoon Oil (filling)
 - 3 Garlic Cloves
 - 0.25 Teaspoon Salt (filling)

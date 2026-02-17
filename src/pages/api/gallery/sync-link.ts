@@ -15,45 +15,25 @@ async function probeMediaType(baseUrl: string): Promise<MediaType> {
   const videoProbeUrl = `${baseUrl}=dv`;
 
   try {
+    // Only use HEAD request for speed - usually enough to distinguish via Content-Type
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000); // 3s timeout for each probe
+
     const headResponse = await fetch(videoProbeUrl, {
       method: 'HEAD',
       headers: GOOGLE_HEADERS,
-      redirect: 'follow'
-    });
-
-    if (headResponse.ok) {
-      const contentType = headResponse.headers.get('content-type') || '';
-      if (contentType.startsWith('video/')) return 'video';
-      if (contentType.startsWith('image/')) return 'image';
-    }
-  } catch (error) {
-    console.warn('Video HEAD probe failed:', error);
-  }
-
-  // Fallback: try a tiny range request to infer type
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-
-    const getResponse = await fetch(videoProbeUrl, {
-      method: 'GET',
-      headers: {
-        ...GOOGLE_HEADERS,
-        Range: 'bytes=0-0'
-      },
       redirect: 'follow',
       signal: controller.signal
     });
 
     clearTimeout(timeout);
-    getResponse.body?.cancel();
 
-    if (getResponse.ok || getResponse.status === 206) {
-      const contentType = getResponse.headers.get('content-type') || '';
+    if (headResponse.ok) {
+      const contentType = headResponse.headers.get('content-type') || '';
       if (contentType.startsWith('video/')) return 'video';
     }
   } catch (error) {
-    console.warn('Video GET probe failed:', error);
+    // If probe fails or times out, default to image
   }
 
   return 'image';
@@ -210,7 +190,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (albumError) throw albumError;
 
-    const mediaTypes = await mapWithConcurrency(uniqueBaseUrls, 5, async (photoUrl) => {
+    // Use higher concurrency for much faster syncing (50 items at once)
+    const mediaTypes = await mapWithConcurrency(uniqueBaseUrls, 50, async (photoUrl) => {
       return await probeMediaType(photoUrl);
     });
 

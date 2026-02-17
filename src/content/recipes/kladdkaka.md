@@ -6,6 +6,7 @@ prep_time: 10
 cook_time: 20
 servings: 8
 category: "Dessert"
+publishDate: 2026-02-14
 ingredients:
   - item: "Butter for greasing"
     amount: "as needed"
@@ -27,7 +28,7 @@ ingredients:
     amount: "pinch"
   - item: "Powdered Sugar (dusting)"
     amount: "10g"
-  - item: "Whipping Cream (to serve)"
+  - item: "Double Cream (to serve)"
     amount: "200ml"
   - item: "Fresh Berries"
     amount: "as needed"
@@ -36,6 +37,4 @@ instructions:
   - step: "Whisk Eggs, Sugar, then stir in Butter, Cocoa, Vanilla Sugar, Salt, Flour."
   - step: "Bake at 180°C for 15–20 min."
   - step: "Cool, dust with Sugar, serve with Cream, Berries."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

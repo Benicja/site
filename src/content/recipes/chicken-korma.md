@@ -6,6 +6,7 @@ prep_time: 10
 cook_time: 25
 servings: 4
 category: "Dinner"
+publishDate: 2026-01-30
 ingredients:
   - item: "Onion"
     amount: "1"
@@ -20,6 +21,4 @@ instructions:
   - step: "Fry Chicken until browned, add Onion, Garlic, soften."
   - step: "Add Korma Sauce, simmer until chicken is cooked and sauce thickens."
   - step: "Serve with Rice or Naan."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

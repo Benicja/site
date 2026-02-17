@@ -3,7 +3,7 @@ export const prerender = false;
 
 import Layout from '../../layouts/Layout.astro';
 import { SESSION_COOKIE, getApprovedUser, getUserFromSession, getSiteConfig } from '../../lib/auth';
-import { getAlbums, type Album } from '../../lib/gallery';
+import { getAlbums, type Album, getAlbumDate, getDisplayDate, getDisplayTitle } from '../../lib/gallery';
 import { supabaseAdmin } from '../../lib/supabase';
 
 // Check if user is authenticated
@@ -52,51 +52,21 @@ try {
   error = e instanceof Error ? e.message : 'Unknown error occurred';
 }
 
-// Helper to format date from title or created_at
-function getDisplayDate(album: any) {
-  const dateMatch = album.title.match(/^(\d{2})\/(\d{2})/);
-  if (dateMatch) {
-    const year = 2000 + parseInt(dateMatch[1]);
-    const month = parseInt(dateMatch[2]) - 1;
-    return new Date(year, month).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-  }
-  return new Date(album.created_at).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-}
-
-// Helper to clean title for display
-function getDisplayTitle(title: string) {
-  return title.replace(/^\d{2}\/\d{2}\s*-\s*/, '').trim();
-}
-
-function getAlbumDate(album: any) {
-  const title = album?.title || '';
-  const match = title.match(/^(\d{2,4})\/(\d{2})(?:\/(\d{2}))?/);
-  if (match) {
-    let year = parseInt(match[1], 10);
-    if (year < 100) year += 2000;
-    const month = parseInt(match[2], 10) - 1;
-    const day = match[3] ? parseInt(match[3], 10) : 1;
-    const parsed = new Date(year, month, day);
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed;
-    }
-  }
-
-  const created = new Date(album.created_at);
-  return Number.isNaN(created.getTime()) ? new Date() : created;
-}
-
 const albumsWithDates = albums
   .map((album) => {
-    const date = getAlbumDate(album);
+    const parsedDate = getAlbumDate(album.title);
+    const hasDetectedDate = !!parsedDate;
+    
+    // Use detected date or created_at for display
+    const date = hasDetectedDate ? parsedDate : new Date(album.created_at);
+
     return {
       album,
       date,
-      year: date.getFullYear(),
+      year: hasDetectedDate ? parsedDate.getFullYear() : 'Recent',
       dayLabel: date.toLocaleDateString('en-GB', { month: 'long' })
     };
-  })
-  .sort((a, b) => b.date.getTime() - a.date.getTime());
+  });
 
 const albumsByYear = albumsWithDates.reduce((acc, item) => {
   const key = String(item.year);
@@ -205,9 +175,9 @@ const albumsByYear = albumsWithDates.reduce((acc, item) => {
         </div>
 
         <div id="albums-view">
-          {albums.length > 0 ? (
+          {albumsWithDates.length > 0 ? (
             <div id="gallery-grid" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6">
-              {albums.map((album) => (
+              {albumsWithDates.map(({ album }) => (
                 <a 
                   href={`/gallery/${album.google_album_id}`}
                   class="group flex flex-col gallery-item"
@@ -235,7 +205,7 @@ const albumsByYear = albumsWithDates.reduce((acc, item) => {
                           {getDisplayTitle(album.title)}
                         </h3>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-400 mt-2 font-bold">
-                          {getDisplayDate(album)}
+                          {getDisplayDate(album.title, album.created_at)}
                         </p>
                       </div>
                       <div class="pt-1 opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all duration-500">
@@ -262,7 +232,11 @@ const albumsByYear = albumsWithDates.reduce((acc, item) => {
           {albumsWithDates.length > 0 ? (
             <div class="space-y-10">
               {Object.entries(albumsByYear)
-                .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
+                .sort(([yearA], [yearB]) => {
+                  if (yearA === 'Recent') return -1;
+                  if (yearB === 'Recent') return 1;
+                  return Number(yearB) - Number(yearA);
+                })
                 .map(([year, items]) => (
                 <div class="rounded-3xl border border-gray-100 bg-white/70 p-6 md:p-8 shadow-sm">
                   <div class="flex items-center gap-4 mb-6">

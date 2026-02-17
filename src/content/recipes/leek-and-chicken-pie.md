@@ -6,6 +6,7 @@ prep_time: 15
 cook_time: 25
 servings: 4
 category: "Dinner"
+publishDate: 2026-02-15
 ingredients:
   - item: "Leeks"
     amount: "2"
@@ -37,6 +38,4 @@ instructions:
   - step: "Pour mixture into baking dish. Cover with Puff Pastry, decorate."
   - step: "Bake for 10 minutes or until golden and crisp."
   - step: "Serve hot, optionally with Broccoli."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

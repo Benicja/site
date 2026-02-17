@@ -6,6 +6,7 @@ prep_time: 40
 cook_time: 15
 servings: 6
 category: "Dinner"
+publishDate: 2026-02-01
 ingredients:
   - item: "Plain Flour"
     amount: "250g"
@@ -15,7 +16,7 @@ ingredients:
     amount: "0.75 tsp"
   - item: "Boiling Water"
     amount: "180ml"
-  - item: "Frozen Spinach or Fresh"
+  - item: "Frozen Spinach"
     amount: "280g frozen or 340g fresh"
   - item: "Oil (filling)"
     amount: "1 tbsp"
@@ -41,6 +42,4 @@ instructions:
   - step: "Meat filling: Sauté Onion, mix with Beef, Oil, Salt, Pepper."
   - step: "Roll dough, cut, fill, seal."
   - step: "Boil until floating. Optionally fry in Butter."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

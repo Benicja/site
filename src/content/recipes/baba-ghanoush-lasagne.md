@@ -6,6 +6,7 @@ prep_time: 60
 cook_time: 60
 servings: 8
 category: "Dinner"
+publishDate: 2026-02-05
 ingredients:
   - item: "Onion"
     amount: "1"
@@ -39,6 +40,4 @@ instructions:
   - step: "Layer: Sheets, Baba Ghanoush, Beef, Mozzarella. Repeat."
   - step: "Top with Buffalo Mozzarella."
   - step: "Bake at 180°C, 35–40 min."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

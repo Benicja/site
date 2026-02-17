@@ -6,6 +6,7 @@ prep_time: 10
 cook_time: 35
 servings: 4
 category: "Dinner"
+publishDate: 2026-02-13
 ingredients:
   - item: "Large Onion"
     amount: "0.5"
@@ -48,6 +49,4 @@ instructions:
   - step: "Add Turmeric to Lentils, then add cooked Chicken or drained Chickpeas. Simmer for about 10 minutes."
   - step: "When Lentils soften, mix in tarka."
   - step: "Serve with Rice and steamed Broccoli."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

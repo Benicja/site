@@ -6,6 +6,7 @@ prep_time: 15
 cook_time: 45
 servings: 8
 category: "Dessert"
+publishDate: 2026-01-28
 ingredients:
   - item: "Lemon"
     amount: "1"
@@ -29,6 +30,4 @@ instructions:
   - step: "Stir in Vanilla Sugar, Lemon and Lime Zest."
   - step: "Add Flour alternately with Cream. Mix until just combined."
   - step: "Bake 40–50 min. Cool and drizzle with Lemon-Lime Icing if desired."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

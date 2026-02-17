@@ -6,6 +6,7 @@ prep_time: 20
 cook_time: 25
 servings: 10
 category: "Dessert"
+publishDate: 2026-02-07
 ingredients:
   - item: "Caster Sugar"
     amount: "200g"
@@ -36,6 +37,4 @@ instructions:
   - step: "Fold in Flour, Baking Powder. Add Milk."
   - step: "Bake in two tins at 180°C for 25 min."
   - step: "Cool, sandwich Jam and Cream, dust with Icing Sugar."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

@@ -24,27 +24,93 @@ export interface Photo {
 export async function getAlbums() {
   const { data, error } = await supabase
     .from('gallery_albums')
-    .select('*')
-    .order('title', { ascending: false }); // Works well with YY/MM format
+    .select('*');
   
   if (error) {
     console.error('Error fetching albums:', error);
     return [];
   }
   
-  // Sort by display_order if it exists and is set
   const albums = data as Album[];
+
+  // Sort logic matching the main gallery page
   return albums.sort((a, b) => {
-    // If both have display_order, use it
+    // 1. If both have manual display_order, strictly follow it
     if (a.display_order != null && b.display_order != null) {
       return a.display_order - b.display_order;
     }
-    // If only one has it, that one comes first
-    if (a.display_order != null) return -1;
-    if (b.display_order != null) return 1;
-    // Otherwise keep the database title sort order
-    return 0;
+
+    // Calculate "automatic" scores
+    const dateA = getAlbumDate(a.title);
+    const dateB = getAlbumDate(b.title);
+    const createdA = new Date(a.created_at).getTime();
+    const createdB = new Date(b.created_at).getTime();
+
+    // Recent albums (no date in title) get a Year 3000 score
+    const scoreA = dateA ? dateA.getTime() : new Date(3000, 0, 1).getTime() + createdA;
+    const scoreB = dateB ? dateB.getTime() : new Date(3000, 0, 1).getTime() + createdB;
+
+    // 2. If one is manual and the other is automatic:
+    if (a.display_order != null) {
+      // Manual album 'a' vs Automatic album 'b'
+      // Automatic 'b' only wins if it's a "Recent" album (Year 3000 score)
+      if (scoreB > new Date(2900, 0, 1).getTime()) return 1;
+      return -1; // Otherwise, manual selection 'a' wins over dated automatic 'b'
+    }
+    if (b.display_order != null) {
+      if (scoreA > new Date(2900, 0, 1).getTime()) return -1;
+      return 1;
+    }
+
+    // 3. Both are automatic: use scores (Recent > Dated)
+    return scoreB - scoreA;
   });
+}
+
+// Helper to format date from title or created_at
+export function getDisplayDate(title: string, createdAt: string) {
+  if (!title) return new Date(createdAt).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  
+  const dateMatch = title.match(/^(\d{1,2})\/(\d{2})/);
+  if (dateMatch) {
+    const month = parseInt(dateMatch[1]) - 1;
+    const year = 2000 + parseInt(dateMatch[2]);
+    return new Date(year, month).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  }
+  return new Date(createdAt).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+}
+
+// Helper to clean title for display
+export function getDisplayTitle(title: string) {
+  if (!title) return 'Untitled Album';
+  return title.replace(/^\d{1,2}\/\d{2,4}(?:\/\d{1,2})?\s*-\s*/, '').trim();
+}
+
+export function getAlbumDate(title: string) {
+  if (!title) return null;
+  
+  const match = title.match(/^(\d{1,2})\/(\d{2,4})(?:\/(\d{1,2}))?/);
+  if (match) {
+    let monthPart = parseInt(match[1], 10);
+    let yearPart = parseInt(match[2], 10);
+    
+    // Handle MM/YY vs YYYY/MM heuristic
+    if (monthPart > 12) {
+      const temp = monthPart;
+      monthPart = yearPart;
+      yearPart = temp;
+    }
+
+    if (yearPart < 100) yearPart += 2000;
+    const month = monthPart - 1;
+    const day = match[3] ? parseInt(match[3], 10) : 1;
+    const parsed = new Date(yearPart, month, day);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  return null;
 }
 
 export async function getAlbumById(albumId: string) {

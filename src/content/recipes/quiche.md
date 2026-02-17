@@ -6,6 +6,7 @@ prep_time: 30
 cook_time: 55
 servings: 6
 category: "Dinner"
+publishDate: 2026-02-10
 ingredients:
   - item: "Olive Oil"
     amount: "1 tbsp"
@@ -51,6 +52,4 @@ instructions:
   - step: "Beat Eggs, Cream, Milk, Cheese, Nutmeg, Salt, Pepper."
   - step: "Mix veggies and Bacon with Eggs-Cream-Cheese mixture, pour into pastry."
   - step: "Bake for 35–45 minutes. Cool slightly before slicing."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

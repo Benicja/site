@@ -6,6 +6,7 @@ prep_time: 5
 cook_time: 25
 servings: 4
 category: "Dinner"
+publishDate: 2026-02-11
 ingredients:
   - item: "Garlic Clove"
     amount: "1"
@@ -41,6 +42,4 @@ instructions:
   - step: "Fry 5 minutes, add Chopped Tomatoes, Mixed Beans, and Sweetcorn."
   - step: "Simmer until all vegetables are soft, about 10 minutes."
   - step: "Add Gnocchi at end, simmer 3–4 minutes. Serve with Broccoli or Rice."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

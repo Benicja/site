@@ -6,6 +6,7 @@ prep_time: 20
 cook_time: 10
 servings: 8
 category: "Dessert"
+publishDate: 2026-02-04
 ingredients:
   - item: "Digestive Biscuits"
     amount: "225g"
@@ -27,6 +28,4 @@ instructions:
   - step: "Arrange Bananas."
   - step: "Whip Cream with Icing Sugar, spread over Bananas."
   - step: "Grate Chocolate on top. Chill."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

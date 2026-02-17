@@ -6,6 +6,7 @@ prep_time: 15
 cook_time: 25
 servings: 4
 category: "Dinner"
+publishDate: 2026-02-16
 ingredients:
   - item: "Broccoli"
     amount: "300g"
@@ -28,6 +29,4 @@ instructions:
   - step: "Stir fry Chicken, add Sauce, simmer until sticky."
   - step: "Stir fry or steam Broccoli, add to pan."
   - step: "Sprinkle Sesame Seeds, serve with Rice or Noodles."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

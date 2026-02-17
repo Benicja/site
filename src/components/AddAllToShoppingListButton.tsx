@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { toast } from '../lib/notifications';
+import { aggregateIngredients, type ShoppingItem } from '../lib/shopping';
 
 interface Ingredient {
   amount: string;
@@ -12,7 +14,7 @@ interface Props {
 
 const STORAGE_KEY = 'benicja_shopping_list';
 
-function loadList() {
+function loadList(): ShoppingItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
@@ -22,37 +24,37 @@ function loadList() {
   }
 }
 
-function saveList(list: any[]) {
+function saveList(list: ShoppingItem[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
 export default function AddAllToShoppingListButton({ ingredients, className = '' }: Props) {
-  const [notification, setNotification] = useState<{ msg: string; type: 'success' | 'warn' } | null>(null);
+  const [isSpinning, setIsSpinning] = useState(false);
 
   function handleAddAll() {
     const current = loadList();
-    const names = new Set(current.map((i: any) => i.name));
-    const newItems = ingredients
-      .map(i => ({
-        id: Date.now() + Math.random().toString(16),
-        name: `${i.amount ? i.amount + ' ' : ''}${i.item}`.trim(),
-        checked: false,
-      }))
-      .filter(i => !names.has(i.name));
-    const updated = [...current, ...newItems];
+    const updated = aggregateIngredients(current, ingredients);
+    
+    // Check how many items were actually added or changed
+    const addedCount = updated.length - current.length;
+    const changedCount = updated.filter((item, idx) => 
+      idx < current.length && JSON.stringify(item) !== JSON.stringify(current[idx])
+    ).length;
+
     saveList(updated);
-    if (newItems.length > 0) {
-      setNotification({
-        msg: `${newItems.length} item${newItems.length > 1 ? 's' : ''} added to shopping list!`,
-        type: 'success',
-      });
+    
+    // Always trigger spin for visual feedback!
+    setIsSpinning(true);
+    setTimeout(() => setIsSpinning(false), 500);
+
+    if (addedCount > 0 || changedCount > 0) {
+      const msg = addedCount > 0 
+        ? `${addedCount} new item${addedCount > 1 ? 's' : ''} added ${changedCount > 0 ? `& ${changedCount} updated` : ''}`
+        : `${changedCount} item${changedCount > 1 ? 's' : ''} updated`;
+      toast(msg, 'success');
     } else {
-      setNotification({
-        msg: 'All ingredients already in shopping list!',
-        type: 'warn',
-      });
+      toast('All ingredients already in shopping list!', 'info');
     }
-    setTimeout(() => setNotification(null), 2200);
   }
 
   return (
@@ -62,21 +64,21 @@ export default function AddAllToShoppingListButton({ ingredients, className = ''
         onClick={handleAddAll}
         type="button"
       >
-        <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes spin-once {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          .animate-spin-once {
+            animation: spin-once 0.5s ease-in-out;
+          }
+        `}} />
+        <svg className={`w-5 h-5 ${isSpinning ? 'animate-spin-once' : ''}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v8m-4-4h8" />
         </svg>
-        Add Ingredients
+        Add All to List
       </button>
-      {notification && (
-        <div
-          className={`fixed left-1/2 -translate-x-1/2 bottom-6 z-[9999] px-6 py-3 rounded shadow-lg text-sm font-semibold animate-fadeIn
-            ${notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-orange-400 text-white'}`}
-          style={{ minWidth: '220px', textAlign: 'center' }}
-        >
-          {notification.msg}
-        </div>
-      )}
     </>
   );
 }

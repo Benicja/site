@@ -82,9 +82,10 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 
         <section>
           <div id="recipes-grid" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-x-8 md:gap-y-8">
-            {sortedRecipes.map(recipe => (
+            {sortedRecipes.map((recipe, index) => (
               <div 
-                class="recipe-item" 
+                class="recipe-item opacity-0 invisible" 
+                style={`--stagger: ${index}; content-visibility: auto; contain-intrinsic-size: 1px 400px;`}
                 data-title={recipe.data.title.toLowerCase()}
                 data-category={formatCategories(recipe.data.category).toLowerCase()}
                 data-hearted={userHearts.has(recipe.slug).toString()}
@@ -111,6 +112,25 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
     )}
   </div>
 
+  <style is:global>
+    @keyframes entry-fade-in {
+      from { 
+        opacity: 0; 
+        transform: translateY(10px);
+        visibility: hidden;
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0);
+        visibility: visible;
+      }
+    }
+
+    .recipe-item.reveal {
+      animation: entry-fade-in 0.4s ease-out forwards;
+    }
+  </style>
+
   <script is:inline>
     function initSearch() {
       const searchInput = document.getElementById('recipe-search');
@@ -121,6 +141,21 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
       const filterGroup = document.querySelector('[data-filter-group]');
 
       if (!searchInput) return;
+
+      // STAGGERED REVEAL on initial load
+      // We reveal in small batches to avoid frame spikes
+      const revealItems = () => {
+        recipeItems.forEach((item, i) => {
+          // Calculate a small delay for each (e.g. 15ms per item)
+          // This spreads the "creation" work across many frames
+          setTimeout(() => {
+            item.classList.remove('opacity-0', 'invisible');
+            item.classList.add('reveal');
+          }, i * 12);
+        });
+      };
+      
+      revealItems();
 
 
       let activeCategory = null;

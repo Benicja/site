@@ -6,6 +6,7 @@ prep_time: 25
 cook_time: 50
 servings: 8
 category: "Dessert"
+publishDate: 2026-02-02
 ingredients:
   - item: "Apples"
     amount: "1kg"
@@ -13,7 +14,7 @@ ingredients:
     amount: "350g"
   - item: "Egg Yolks"
     amount: "3"
-  - item: "30% Cream"
+  - item: "Double Cream"
     amount: "100ml"
   - item: "Plain Flour"
     amount: "500g"
@@ -26,6 +27,4 @@ instructions:
   - step: "Divide dough in two, roll base/lid."
   - step: "Fill with sliced Apples tossed in Sugar (& Cinnamon optional)."
   - step: "Top with dough, cut slits. Bake at 180°C for 45–50 min."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

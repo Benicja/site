@@ -6,6 +6,7 @@ prep_time: 20
 cook_time: 35
 servings: 4
 category: "Dinner"
+publishDate: 2026-01-29
 ingredients:
   - item: "Onion"
     amount: "1"
@@ -36,6 +37,4 @@ instructions:
   - step: "Fry Chicken, add remaining spices, cook."
   - step: "Add Tomatoes, add onion mix back, simmer 15 min."
   - step: "Add Salt, adjust seasoning. Serve with Rice."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

@@ -6,6 +6,7 @@ prep_time: 20
 cook_time: 40
 servings: 4
 category: "Dinner"
+publishDate: 2026-02-08
 ingredients:
   - item: "Olive Oil"
     amount: "1 tbsp"
@@ -25,7 +26,7 @@ ingredients:
     amount: "1 tsp"
   - item: "Paella Rice"
     amount: "300g"
-  - item: "Chicken or Vegetable Stock, Hot"
+  - item: "Chicken Stock"
     amount: "850ml"
   - item: "Frozen Peas"
     amount: "200g"
@@ -40,6 +41,4 @@ instructions:
   - step: "Add Stock, Chicken, Chorizo, Peas. Simmer gently, occasionally stir."
   - step: "Cook 25–30 min."
   - step: "Serve with Lemon and Parsley."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

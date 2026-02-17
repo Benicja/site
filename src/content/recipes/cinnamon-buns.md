@@ -5,7 +5,8 @@ featured_image: "/images/recipes/cinnamon_buns.jpg"
 prep_time: 30
 cook_time: 25
 servings: 8
-category: "Breakfast"
+category: "Dessert"
+publishDate: 2026-02-03
 ingredients:
   - item: "Milk"
     amount: "240ml"
@@ -49,6 +50,4 @@ instructions:
   - step: "Proof 30 min. Glaze with Egg+Milk. Bake 180°C for 22–25 min."
   - step: "Cream: Zest/Juice Orange, mix with Mascarpone, Honey, Salt."
   - step: "Serve warm with cream."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

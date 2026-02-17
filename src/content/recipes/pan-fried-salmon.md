@@ -6,6 +6,7 @@ prep_time: 15
 cook_time: 25
 servings: 2
 category: "Dinner"
+publishDate: 2026-02-09
 ingredients:
   - item: "Onion"
     amount: "1"
@@ -28,6 +29,4 @@ instructions:
   - step: "Season Salmon, cook in Oil, skin side down, 5 minutes, then flip for 2–3 minutes."
   - step: "Remove Salmon, sauté Onion and Garlic, add Lemon juice/zest and a little water for sauce."
   - step: "Serve with fries."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

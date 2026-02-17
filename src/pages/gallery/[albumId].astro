@@ -3,7 +3,7 @@ export const prerender = false;
 
 import Layout from '../../layouts/Layout.astro';
 import { SESSION_COOKIE, getApprovedUser, getUserFromSession } from '../../lib/auth';
-import { getAlbumById, getPhotosByAlbumId } from '../../lib/gallery';
+import { getAlbumById, getPhotosByAlbumId, getDisplayDate, getDisplayTitle } from '../../lib/gallery';
 import '@fancyapps/ui/dist/fancybox/fancybox.css';
 
 const { albumId } = Astro.params;
@@ -28,22 +28,6 @@ const photos = await getPhotosByAlbumId(albumId);
 
 if (!album) {
   return Astro.redirect('/gallery');
-}
-
-// Helper to format date
-function getDisplayDate(albumTitle: string, createdAt: string) {
-  const dateMatch = albumTitle.match(/^(\d{2})\/(\d{2})/);
-  if (dateMatch) {
-    const year = 2000 + parseInt(dateMatch[1]);
-    const month = parseInt(dateMatch[2]) - 1;
-    return new Date(year, month).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-  }
-  return new Date(createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-}
-
-// Helper to clean title
-function getDisplayTitle(title: string) {
-  return title.replace(/^\d{2}\/\d{2}\s*-\s*/, '').trim();
 }
 ---
 

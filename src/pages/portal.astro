@@ -4,7 +4,7 @@ export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 import RecipeCMSCard from '../components/RecipeCMSCard.astro';
 import { SESSION_COOKIE, getApprovedUser, getUserFromSession } from '../lib/auth';
-import { getAlbums } from '../lib/gallery';
+import { getAlbums, getDisplayDate, getDisplayTitle } from '../lib/gallery';
 import { supabaseAdmin, type AccessRequest, type ApprovedUser } from '../lib/supabase';
 
 const sessionId = Astro.cookies.get(SESSION_COOKIE)?.value;
@@ -206,11 +206,11 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
               <div class="flex items-center gap-4 flex-1">
                 <div class="w-2 h-2 bg-gray-300 rounded-full flex-shrink-0"></div>
                 <div class="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden">
-                  <img src={album.cover_image_url} alt="" class="w-full h-full object-cover" />
+                  <img src={`/api/gallery/image?url=${encodeURIComponent(album.cover_image_url)}&w=200`} alt="" class="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <h3 class="text-sm font-bold text-gray-900">{album.title}</h3>
-                  <p class="text-[10px] text-gray-400 uppercase tracking-widest">{album.photo_count} Photos</p>
+                  <h3 class="text-sm font-bold text-gray-900">{getDisplayTitle(album.title)}</h3>
+                  <p class="text-[10px] text-gray-400 uppercase tracking-widest">{getDisplayDate(album.title, album.created_at)} • {album.photo_count} Photos</p>
                 </div>
               </div>
               <div class="flex gap-2">

@@ -6,6 +6,7 @@ prep_time: 10
 cook_time: 15
 servings: 4
 category: "Dinner"
+publishDate: 2026-02-12
 ingredients:
   - item: "Onion"
     amount: "1"
@@ -28,6 +29,4 @@ instructions:
   - step: "Fry Burgers in pan."
   - step: "Build: Bun, Sauce, Patty, Cheese, Tomato, Gherkin, Mustard, more Sauce, top Bun."
   - step: "Serve hot."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

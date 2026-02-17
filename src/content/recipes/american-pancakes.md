@@ -6,6 +6,7 @@ prep_time: 10
 cook_time: 15
 servings: 10
 category: "Breakfast"
+publishDate: 2026-02-17
 ingredients:
   - item: "Plain Flour"
     amount: "250g"
@@ -30,6 +31,4 @@ instructions:
   - step: "Whisk Eggs, Milk, combine. Fold into dry mix."
   - step: "Cook in oiled pan, flip when bubbling."
   - step: "Serve with Syrup, Berries."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---

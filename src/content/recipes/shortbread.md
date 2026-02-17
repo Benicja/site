@@ -6,6 +6,7 @@ prep_time: 10
 cook_time: 30
 servings: 18
 category: "Dessert"
+publishDate: 2026-01-31
 ingredients:
   - item: "Unsalted Butter, Cubed"
     amount: "200g"
@@ -20,6 +21,4 @@ instructions:
   - step: "Mix Butter, Sugar, (Vanilla). Stir in Flour, form dough."
   - step: "Press into tin, prick, sprinkle Sugar."
   - step: "Bake 25–35 min."
-publishDate: 2026-02-16T08:00:00Z
-draft: false
 ---
