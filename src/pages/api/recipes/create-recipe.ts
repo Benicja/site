@@ -114,6 +114,27 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       return new Response(JSON.stringify({ error: 'Could not create recipe file' }), { status: 500 });
     }
 
+    // Add new recipe to the TOP of recipe order
+    try {
+      const orderPath = path.join(process.cwd(), '.recipe-order.json');
+      let recipeOrder: string[] = [];
+      try {
+        const orderData = JSON.parse(await fs.readFile(orderPath, 'utf-8'));
+        recipeOrder = orderData.slugs || [];
+      } catch {
+        // File doesn't exist, start with empty array
+      }
+      
+      // Add new slug to the beginning if not already present
+      if (!recipeOrder.includes(slug)) {
+        recipeOrder.unshift(slug);
+        await fs.writeFile(orderPath, JSON.stringify({ slugs: recipeOrder }, null, 2), 'utf-8');
+      }
+    } catch (orderError: any) {
+      console.error('Warning: Could not update recipe order:', orderError);
+      // Continue anyway, the recipe was created successfully
+    }
+
     return new Response(JSON.stringify({
       success: true,
       slug,

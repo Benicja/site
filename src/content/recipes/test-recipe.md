@@ -1,0 +1,22 @@
+---
+title: "TEST RECIPE"
+description: "TEST RECIPE TEST RECIPE"
+featured_image: "/images/recipes/test-recipe-1771369284847-2a9135c0.jpg"
+prep_time: 111
+cook_time: 222
+servings: 333
+category: "Breakfast"
+
+ingredients:
+  - item: "TEST RECIPE 1"
+    amount: "aa"
+  - item: "TEST RECIPE 2"
+    amount: "bb"
+
+instructions:
+  - step: "TEST RECIPE 1"
+  - step: "TEST RECIPE 2"
+
+publishDate: 2026-02-17
+---
+

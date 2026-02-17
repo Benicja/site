@@ -452,7 +452,7 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
               </div>
 
               <div class="flex gap-3 pt-4 border-t border-gray-200 mt-6">
-                <button type="submit" class="flex-1 px-6 py-2 bg-blue-600 text-white font-bold uppercase tracking-widest rounded-lg hover:bg-blue-700 transition-colors">
+                <button type="submit" id="save-changes-btn" class="flex-1 px-6 py-2 bg-blue-600 text-white font-bold uppercase tracking-widest rounded-lg hover:bg-blue-700 transition-colors">
                   Save Changes
                 </button>
                 <button type="button" id="cancel-edit-btn" class="flex-1 px-6 py-2 bg-gray-200 text-gray-700 font-bold uppercase tracking-widest rounded-lg hover:bg-gray-300 transition-colors">
@@ -583,15 +583,6 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
         cancelEditBtn.addEventListener('click', (e) => {
           e.preventDefault();
           closeEditModal();
-        });
-      }
-
-      // Close modal on backdrop click
-      if (editModal) {
-        editModal.addEventListener('click', (e) => {
-          if (e.target === editModal) {
-            closeEditModal();
-          }
         });
       }
 
@@ -755,6 +746,12 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
         editForm.addEventListener('submit', async (e) => {
           e.preventDefault();
 
+          const saveBtn = document.getElementById('save-changes-btn');
+          if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+          }
+
           const slug = document.getElementById('edit-recipe-slug').value;
           const isCreate = editForm._isCreateMode || !slug;
 
@@ -895,6 +892,12 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
             setTimeout(() => window.location.reload(), 500);
           } catch (err) {
             alert(`Error: ${err.message}`);
+          } finally {
+            const saveBtn = document.getElementById('save-changes-btn');
+            if (saveBtn) {
+              saveBtn.disabled = false;
+              saveBtn.textContent = 'Save Changes';
+            }
           }
         });
         editForm._formSubmitHandler = true;
