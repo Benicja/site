@@ -84,7 +84,7 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <div class="space-y-12">
       <!-- Access Requests -->
-      <section class="bg-white border border-gray-100 rounded-3xl p-8 md:p-12 shadow-sm">
+      <section class="bg-white border border-gray-100 rounded-3xl p-8 md:p-12">
         <div class="flex items-center gap-3 mb-8">
           <div class="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center text-white">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,7 +151,7 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
       </section>
 
       <!-- Approved Users -->
-      <section class="bg-white border border-gray-100 rounded-3xl p-8 md:p-12 shadow-sm">
+      <section class="bg-white border border-gray-100 rounded-3xl p-8 md:p-12">
         <div class="flex items-center gap-3 mb-8">
           <div class="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center text-white">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -282,7 +282,7 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
             {albums.map(album => (
               <div 
                 draggable="true"
-                class="album-item flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors cursor-move hover:shadow-md"
+                class="album-item flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors cursor-move"
                 data-album-id={album.google_album_id}
               >
                 <div class="flex items-center gap-4 flex-1">
@@ -328,7 +328,7 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
             {recipes.map(recipe => (
               <div 
                 draggable="true"
-                class="recipe-item flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors cursor-move hover:shadow-md"
+                class="recipe-item flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors cursor-move"
                 data-recipe-slug={recipe.slug}
               >
                 <div class="flex items-center gap-4 flex-1">
