@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { isUserAdmin, SESSION_COOKIE } from '../../../lib/auth';
 import { supabaseAdmin } from '../../../lib/supabase';
+import { deleteFromGitHub } from '../../../lib/github';
+import path from 'path';
 
 export const prerender = false;
 
@@ -29,7 +31,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (error) {
       console.error('Supabase error:', error);
-      return new Response(JSON.stringify({ error: error.message || 'Failed to delete recipe' }), { status: 500 });
+      return new Response(JSON.stringify({ error: error.message || 'Failed to delete recipe from database' }), { status: 500 });
+    }
+
+    // Secondary: Also delete file from GitHub
+    try {
+      const recipePath = path.join('src', 'content', 'recipes', `${slug}.md`);
+      await deleteFromGitHub(recipePath, `Delete recipe: ${slug}`);
+    } catch (gitError: any) {
+      console.warn('Warning: Failed to delete file from GitHub:', gitError);
+      // We continue since it's already "deleted" in Supabase
     }
 
     return new Response(JSON.stringify({ 

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { isUserAdmin, SESSION_COOKIE } from '../../../lib/auth';
 import { supabaseAdmin } from '../../../lib/supabase';
+import { commitToGitHub } from '../../../lib/github';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -55,14 +56,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     // Generate slug from title
     const slug = generateSlug(title);
-    const recipePath = path.join(process.cwd(), 'src', 'content', 'recipes', `${slug}.md`);
+    const recipePath = path.join('src', 'content', 'recipes', `${slug}.md`);
 
-    // Check if recipe already exists
+    // Check if recipe already exists (using readFromGitHub)
     try {
-      await fs.access(recipePath);
+      await readFromGitHub(recipePath);
       return new Response(JSON.stringify({ error: `Recipe "${slug}" already exists` }), { status: 409 });
     } catch {
-      // File doesn't exist, which is what we want
+      // Not found, continue
     }
 
     // Build frontmatter
@@ -109,10 +110,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const content = `---\n${frontmatterLines.join('\n')}\n---\n\n`;
 
     try {
-      await fs.writeFile(recipePath, content, 'utf-8');
+      await commitToGitHub(recipePath, content, `Create recipe: ${title}`);
     } catch (writeError: any) {
-      console.error('Failed to write file:', writeError);
-      return new Response(JSON.stringify({ error: 'Could not create recipe file' }), { status: 500 });
+      console.error('Failed to commit file to GitHub:', writeError);
+      return new Response(JSON.stringify({ error: `Failed to save recipe: ${writeError.message}` }), { status: 500 });
     }
 
     // Add new recipe to the TOP of recipe order in Supabase

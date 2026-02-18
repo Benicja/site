@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { isUserAdmin, SESSION_COOKIE } from '../../../lib/auth';
+import { readFromGitHub, commitToGitHub } from '../../../lib/github';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -64,31 +65,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   }
 
   try {
-    const recipePath = path.join(process.cwd(), 'src', 'content', 'recipes', `${slug}.md`);
+    const recipePath = path.join('src', 'content', 'recipes', `${slug}.md`);
     
-    // Verify the file is in the recipes directory
-    const recipesDir = path.join(process.cwd(), 'src', 'content', 'recipes');
-    const resolvedPath = path.resolve(recipePath);
-    const resolvedDir = path.resolve(recipesDir);
-    
-    if (!resolvedPath.startsWith(resolvedDir)) {
-      return new Response(JSON.stringify({ error: 'Invalid recipe path' }), { status: 400 });
-    }
-
-    // Check if file exists before attempting to read
-    try {
-      await fs.access(recipePath);
-    } catch {
-      return new Response(JSON.stringify({ error: 'Recipe file not found' }), { status: 404 });
-    }
-
     // Read existing file to preserve content we're not editing
     let existingContent: string;
     try {
-      existingContent = await fs.readFile(recipePath, 'utf-8');
+      existingContent = await readFromGitHub(recipePath);
     } catch (readError: any) {
-      console.error('Failed to read file:', readError);
-      return new Response(JSON.stringify({ error: 'Could not read recipe file. It may be locked or inaccessible.' }), { status: 500 });
+      console.error('Failed to read file from GitHub:', readError);
+      return new Response(JSON.stringify({ error: `Could not load recipe file: ${readError.message}` }), { status: 404 });
     }
 
     const lines = existingContent.split(/\r?\n/);
@@ -99,14 +84,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     let frontmatterEndLine = -1;
     for (let i = 1; i < lines.length; i++) {
-      if (lines[i] === '---') {
-        frontmatterEndLine = i;
-        break;
-      }
+        if (lines[i] === '---') {
+            frontmatterEndLine = i;
+            break;
+        }
     }
 
     if (frontmatterEndLine === -1) {
-      return new Response(JSON.stringify({ error: 'Invalid recipe format: missing closing delimiter' }), { status: 400 });
+        return new Response(JSON.stringify({ error: 'Invalid recipe format: missing closing delimiter' }), { status: 400 });
     }
 
     const originalFrontmatterLines = lines.slice(1, frontmatterEndLine);
@@ -117,54 +102,54 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     newFrontmatterLines.push(`title: ${escapeYamlString(title)}`);
     newFrontmatterLines.push(`description: ${escapeYamlString(description)}`);
     if (featured_image) {
-      newFrontmatterLines.push(`featured_image: ${escapeYamlString(featured_image)}`);
+        newFrontmatterLines.push(`featured_image: ${escapeYamlString(featured_image)}`);
     }
     newFrontmatterLines.push(`prep_time: ${prep_time}`);
     newFrontmatterLines.push(`cook_time: ${cook_time}`);
     if (servings) {
-      newFrontmatterLines.push(`servings: ${servings}`);
+        newFrontmatterLines.push(`servings: ${servings}`);
     }
     newFrontmatterLines.push(`category: ${escapeYamlString(category)}`);
 
 
     // Add ingredients if provided
     if (ingredients && ingredients.length > 0) {
-      newFrontmatterLines.push('');
-      newFrontmatterLines.push(...serializeArray('ingredients', ingredients));
+        newFrontmatterLines.push('');
+        newFrontmatterLines.push(...serializeArray('ingredients', ingredients));
     }
 
     // Add instructions if provided
     if (instructions && instructions.length > 0) {
-      newFrontmatterLines.push('');
-      newFrontmatterLines.push(...serializeArray('instructions', instructions));
+        newFrontmatterLines.push('');
+        newFrontmatterLines.push(...serializeArray('instructions', instructions));
     }
 
     // Preserve fields we're not editing (publishDate, draft)
     const fieldsToPreserve = ['publishDate', 'draft'];
-    
-    for (const fieldName of fieldsToPreserve) {
-      // Find where this field starts in the original frontmatter
-      let fieldStartIdx = -1;
-      for (let i = 0; i < originalFrontmatterLines.length; i++) {
-        if (originalFrontmatterLines[i].startsWith(fieldName + ':')) {
-          fieldStartIdx = i;
-          break;
-        }
-      }
 
-      if (fieldStartIdx !== -1) {
-        newFrontmatterLines.push('');
-        newFrontmatterLines.push(originalFrontmatterLines[fieldStartIdx]);
-      }
+    for (const fieldName of fieldsToPreserve) {
+        // Find where this field starts in the original frontmatter
+        let fieldStartIdx = -1;
+        for (let i = 0; i < originalFrontmatterLines.length; i++) {
+            if (originalFrontmatterLines[i].startsWith(fieldName + ':')) {
+                fieldStartIdx = i;
+                break;
+            }
+        }
+
+        if (fieldStartIdx !== -1) {
+            newFrontmatterLines.push('');
+            newFrontmatterLines.push(originalFrontmatterLines[fieldStartIdx]);
+        }
     }
 
     const newContent = `---\n${newFrontmatterLines.join('\n')}\n---\n\n${bodyContent}`;
 
     try {
-      await fs.writeFile(recipePath, newContent, 'utf-8');
+      await commitToGitHub(recipePath, newContent, `Update recipe: ${title}`);
     } catch (writeError: any) {
-      console.error('Failed to write file:', writeError);
-      return new Response(JSON.stringify({ error: 'Could not save recipe file. The file may be locked or you may lack write permissions.' }), { status: 500 });
+      console.error('Failed to commit update to GitHub:', writeError);
+      return new Response(JSON.stringify({ error: `Could not save recipe file: ${writeError.message}` }), { status: 500 });
     }
 
     return new Response(JSON.stringify({ 

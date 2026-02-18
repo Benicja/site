@@ -876,10 +876,11 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
                 });
 
                 if (!updateResponse.ok) {
-                  throw new Error('Failed to update recipe with image');
+                  const errorData = await updateResponse.json();
+                  throw new Error(errorData.error || 'Failed to update recipe with image');
                 }
               } catch (uploadErr) {
-                alert(`Image upload failed: ${uploadErr.message}`);
+                alert(`Error: ${uploadErr.message}`);
                 return;
               }
             } else if (!isCreate) {
@@ -904,7 +905,8 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
               });
 
               if (!response.ok) {
-                throw new Error('Failed to update recipe');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update recipe');
               }
             }
 
