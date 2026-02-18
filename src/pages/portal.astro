@@ -367,9 +367,9 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
         </div>
 
         <!-- Recipe Edit Modal -->
-        <div id="recipe-edit-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div id="recipe-edit-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-x-hidden">
+          <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto overflow-x-hidden">
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
               <h3 class="text-lg font-bold text-gray-900">Edit Recipe</h3>
               <button id="close-edit-modal" class="text-gray-400 hover:text-gray-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -378,7 +378,7 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
               </button>
             </div>
             
-            <form id="recipe-edit-form" class="p-6 space-y-4">
+            <form id="recipe-edit-form" class="p-5 sm:p-6 space-y-4">
               <input type="hidden" id="edit-recipe-slug" />
               
               <div>
@@ -391,7 +391,7 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
                 <textarea id="edit-recipe-description" rows="3" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" required></textarea>
               </div>
 
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-2">Category</label>
                   <select id="edit-recipe-category" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
@@ -402,7 +402,7 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
                 </div>
               </div>
 
-              <div class="grid grid-cols-3 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-2">Prep Time (mins)</label>
                   <input type="number" id="edit-recipe-prep-time" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="0" required />
@@ -422,7 +422,7 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
                 <label class="block text-xs font-bold uppercase tracking-widest text-gray-700 mb-4">Featured Image</label>
                 <div class="space-y-4">
                   <!-- Image Preview -->
-                  <div id="image-preview-container" class="relative w-full max-w-xs rounded-lg overflow-hidden bg-gray-100 aspect-video flex items-center justify-center border border-gray-200">
+                  <div id="image-preview-container" class="relative w-full sm:max-w-xs rounded-lg overflow-hidden bg-gray-100 aspect-video flex items-center justify-center border border-gray-200">
                     <img id="image-preview" src="" alt="Preview" class="w-full h-full object-cover hidden" />
                     <span id="image-preview-placeholder" class="text-gray-400 text-sm">No image</span>
                   </div>
@@ -685,11 +685,15 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
         if (!ingredientsList) return;
 
         const ingredientDiv = document.createElement('div');
-        ingredientDiv.className = 'ingredient-item flex gap-2 items-end';
+        ingredientDiv.className = 'ingredient-item flex flex-row gap-2 items-start sm:items-end';
         ingredientDiv.innerHTML = `
-          <input type="text" placeholder="Item name" value="${item}" class="flex-1 px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 ingredient-item-input" />
-          <input type="text" placeholder="Amount" value="${amount}" class="w-24 px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 ingredient-amount-input" />
-          <button type="button" class="remove-ingredient-btn px-2 py-2 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
+          <div class="flex-1 min-w-0">
+            <input type="text" placeholder="Item name" value="${item}" class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 ingredient-item-input" />
+          </div>
+          <div class="w-20 sm:w-24 flex-shrink-0">
+            <input type="text" placeholder="Qty" value="${amount}" class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 ingredient-amount-input" />
+          </div>
+          <button type="button" class="remove-ingredient-btn p-2 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 mt-1 sm:mt-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -713,10 +717,12 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
         if (!instructionsList) return;
 
         const instructionDiv = document.createElement('div');
-        instructionDiv.className = 'instruction-item flex gap-2 items-end';
+        instructionDiv.className = 'instruction-item flex gap-2 items-start';
         instructionDiv.innerHTML = `
-          <textarea placeholder="Step description" class="flex-1 px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 instruction-step-input resize-none" rows="2">${step}</textarea>
-          <button type="button" class="remove-instruction-btn px-2 py-2 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
+          <div class="flex-1 min-w-0">
+            <textarea placeholder="Step description" class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 instruction-step-input resize-none" rows="2">${step}</textarea>
+          </div>
+          <button type="button" class="remove-instruction-btn p-2 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 mt-1">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -1454,4 +1460,13 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
     initializePortal();
     document.addEventListener('astro:page-load', initializePortal);
   </script>
+
+  <style is:global>
+    /* Disable horizontal scroll for the entire admin portal */
+    html, body {
+      overflow-x: hidden !important;
+      position: relative;
+      max-width: 100%;
+    }
+  </style>
 </Layout>
