@@ -380,7 +380,7 @@ if (resolveAuth) {
       });
     </script>
   </head>
-  <body class={`${currentPath.startsWith('/recipes') || currentPath.startsWith('/gallery') ? 'bg-gray-200' : 'bg-white'} min-h-screen font-sans antialiased text-gray-900 ${currentPath.startsWith('/recipes') ? 'is-recipe-page' : ''}`}>
+  <body class={`${(currentPath.startsWith('/recipes')) || (currentPath.startsWith('/gallery')) ? 'bg-gray-100' : 'bg-white'} min-h-screen font-sans antialiased text-gray-900 ${currentPath.startsWith('/recipes') ? 'is-recipe-page' : ''}`}>
     <!-- Progress Bar -->
     <div id="nav-progress" class="fixed top-0 left-0 w-0 h-[2px] bg-gray-900 z-[100] transition-all opacity-0 pointer-events-none"></div>
 

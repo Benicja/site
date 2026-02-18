@@ -269,7 +269,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                   </button>
                 )}
                 {activeTab === 'utility' ? (
-                  <ul className="grid gap-0.5">
+                  <ul className="grid gap-0.5 md:gap-0">
                     {currentList.map(item => {
                       const showAmount = item.amount !== null && !shouldHideAmount(item.baseItem, item.amount, item.unit, item.category);
                       
@@ -295,7 +295,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                       }
 
                       return (
-                        <li key={item.id} className="flex items-center gap-4 p-1.5 group hover:bg-gray-50 rounded-lg transition-colors">
+                        <li key={item.id} className="flex items-center gap-4 md:gap-3 p-1.5 md:p-1 group hover:bg-gray-50 rounded-lg transition-colors">
                           <div className="relative flex items-center justify-center">
                             <input
                               type="checkbox"
@@ -323,7 +323,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                             <>
                               <span 
                                 className={
-                                  `flex-1 text-sm md:text-[13px] py-1 font-medium transition-all cursor-pointer ${item.checked ? 'line-through text-gray-400' : 'text-gray-900'}`
+                                  `flex-1 text-sm md:text-[13px] py-1 md:py-0.5 font-medium transition-all cursor-pointer ${item.checked ? 'line-through text-gray-400' : 'text-gray-900'}`
                                 }
                                 onClick={() => startEditing(item, displayQty)}
                               >
@@ -360,11 +360,11 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                   </ul>
                 ) : (
                   groupedItems.map(([category, catItems]) => (
-                    <div key={category} className="space-y-1">
-                    <h3 className="text-[11px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 px-1 pt-1">
+                    <div key={category} className="space-y-1 md:space-y-0.5">
+                    <h3 className="text-[11px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 px-1 pt-1 md:pt-0.5">
                       {category}
                     </h3>
-                    <ul className="grid gap-0.5">
+                    <ul className="grid gap-0.5 md:gap-0">
                       {catItems.map(item => {
                         const showAmount = item.amount !== null && !shouldHideAmount(item.baseItem, item.amount, item.unit, item.category);
                         
@@ -390,7 +390,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                         }
 
                         return (
-                          <li key={item.id} className="flex items-center gap-4 p-1.5 group hover:bg-gray-50 rounded-lg transition-colors">
+                          <li key={item.id} className="flex items-center gap-4 md:gap-3 p-1.5 md:p-1 group hover:bg-gray-50 rounded-lg transition-colors">
                             <div className="relative flex items-center justify-center">
                               <input
                                 type="checkbox"
@@ -418,7 +418,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                               <>
                                 <span 
                                   className={
-                                    `flex-1 text-sm md:text-[13px] py-1 font-medium transition-all cursor-pointer ${item.checked ? 'line-through text-gray-400' : 'text-gray-900'}`
+                                    `flex-1 text-sm md:text-[13px] py-1 md:py-0.5 font-medium transition-all cursor-pointer ${item.checked ? 'line-through text-gray-400' : 'text-gray-900'}`
                                   }
                                   onClick={() => startEditing(item, displayQty)}
                                 >
