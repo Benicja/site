@@ -6,6 +6,8 @@ prep_time: 30
 cook_time: 20
 servings: 20
 category: "Breakfast"
+ingredients: []
+instructions: []
 
 publishDate: 2026-02-18
 ---

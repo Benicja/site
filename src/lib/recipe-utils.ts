@@ -27,8 +27,8 @@ export function buildRecipeFrontmatter(recipe: RecipeData): string {
     cook_time: recipe.cook_time || 0,
     ...(recipe.servings && { servings: recipe.servings }),
     category: recipe.category || 'Other',
-    ...(recipe.ingredients && recipe.ingredients.length > 0 && { ingredients: recipe.ingredients }),
-    ...(recipe.instructions && recipe.instructions.length > 0 && { instructions: recipe.instructions }),
+    ingredients: recipe.ingredients || [],
+    instructions: recipe.instructions || [],
     publishDate: recipe.publishDate || new Date().toISOString().split('T')[0],
     ...(recipe.draft !== undefined && { draft: recipe.draft })
   };
@@ -60,7 +60,7 @@ export function validateRecipeYAML(content: string): string | null {
     const parsed = parse(yamlContent);
 
     // Validate required fields
-    const required = ['title', 'description', 'category', 'prep_time', 'cook_time'];
+    const required = ['title', 'description', 'category', 'prep_time', 'cook_time', 'ingredients', 'instructions'];
     for (const field of required) {
       if (!(field in parsed)) {
         return `Missing required field: ${field}`;
@@ -75,26 +75,22 @@ export function validateRecipeYAML(content: string): string | null {
     if (typeof parsed.cook_time !== 'number') return 'cook_time must be a number';
 
     // Validate ingredients array
-    if (parsed.ingredients) {
-      if (!Array.isArray(parsed.ingredients)) {
-        return 'ingredients must be an array';
-      }
-      for (const ing of parsed.ingredients) {
-        if (typeof ing.item !== 'string' || typeof ing.amount !== 'string') {
-          return 'Each ingredient must have "item" and "amount" strings';
-        }
+    if (!Array.isArray(parsed.ingredients)) {
+      return 'ingredients must be an array';
+    }
+    for (const ing of parsed.ingredients) {
+      if (typeof ing.item !== 'string' || typeof ing.amount !== 'string') {
+        return 'Each ingredient must have "item" and "amount" strings';
       }
     }
 
     // Validate instructions array
-    if (parsed.instructions) {
-      if (!Array.isArray(parsed.instructions)) {
-        return 'instructions must be an array';
-      }
-      for (const ins of parsed.instructions) {
-        if (typeof ins.step !== 'string') {
-          return 'Each instruction must have a "step" string';
-        }
+    if (!Array.isArray(parsed.instructions)) {
+      return 'instructions must be an array';
+    }
+    for (const ins of parsed.instructions) {
+      if (typeof ins.step !== 'string') {
+        return 'Each instruction must have a "step" string';
       }
     }
 
