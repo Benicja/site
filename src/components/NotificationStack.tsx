@@ -21,7 +21,7 @@ export default function NotificationStack() {
   }, []);
 
   return (
-    <div className="fixed left-1/2 -translate-x-1/2 bottom-6 z-[2147483647] flex flex-col-reverse gap-2 pointer-events-none">
+    <div className="fixed left-1/2 -translate-x-1/2 bottom-6 z-[200] flex flex-col-reverse gap-2 pointer-events-none">
       {notifications.map((n) => (
         <div
           key={n.id}
