@@ -423,7 +423,6 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
                 
                 const { timestamp, data } = JSON.parse(itemRaw);
                 if (Date.now() - timestamp < 10 * 60 * 1000) {
-```,oldString:
                   const template = currentItems[0];
                   if (template && grid) {
                     const newItem = template.cloneNode(true) as HTMLElement;
