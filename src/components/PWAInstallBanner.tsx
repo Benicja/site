@@ -116,13 +116,11 @@ export default function PWAInstallBanner() {
   return (
     <div className="md:hidden bg-gray-100 border-b border-gray-200 py-3 px-4 flex items-center justify-between animate-fade-in relative z-50">
       <div className="flex items-center gap-3">
-        <div className="bg-gray-900 rounded-lg p-1.5 hidden sm:block">
-          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg>
+        <div className="bg-white rounded-lg p-0.5 overflow-hidden w-8 h-8 flex-shrink-0 shadow-sm">
+          <img src="/images/app_logo.png" alt="App Logo" className="w-full h-full object-cover" />
         </div>
         <p className="text-sm font-medium text-gray-900 pr-4">
-          You can get the <span className="font-bold font-serif italic text-black">Benicja App</span> on Mobile
+          Get the <span className="font-bold font-serif italic text-black">Benicja App</span> on mobile
         </p>
       </div>
       <div className="flex items-center gap-2">

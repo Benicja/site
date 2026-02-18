@@ -8,25 +8,35 @@ import { getRecipeHearts } from '../../lib/hearts';
 import AddAllToShoppingListButton from '../../components/AddAllToShoppingListButton.astro';
 
 const { slug } = Astro.params;
-const recipe = await getEntry('recipes', slug as string);
-
-if (!recipe) {
-  return Astro.redirect('/404');
-}
+let recipe = await getEntry('recipes', slug as string);
+const isGhost = !recipe;
 
 // Get current user
 const sessionId = Astro.cookies.get(SESSION_COOKIE)?.value;
 const user = sessionId ? await getUserFromSession(sessionId) : null;
 
-// Get heart data
-const globalHearts = await getRecipeHearts();
-const heartCount = (globalHearts as any)[recipe.slug] || 0;
+// Get heart data or default to 0 for ghost
+const globalHearts = !isGhost ? await getRecipeHearts() : {};
+const heartCount = !isGhost ? ((globalHearts as any)[recipe!.slug] || 0) : 0;
 
-const data: typeof recipe.data & { servings?: number } = recipe.data;
+const data = isGhost ? {
+  title: 'Preparing your recipe...',
+  description: 'This recipe was just created and is being processed. It should appear in a few moments!',
+  category: 'New Recipe',
+  prep_time: 0,
+  cook_time: 0,
+  servings: 0,
+  featured_image: '',
+  ingredients: [],
+  instructions: []
+} : recipe!.data;
+
+const pageTitle = isGhost ? 'New Recipe' : data.title;
+const pageDesc = isGhost ? 'Pending deploy' : data.description;
 ---
 
-<Layout title={data.title} description={data.description} user={user}>
-  <div class="recipe-page">
+<Layout title={pageTitle} description={pageDesc} user={user}>
+  <div class="recipe-page" data-is-ghost={isGhost ? "true" : "false"}>
     <div class="recipe-shell">
       <section class="recipe-hero">
         <div class="hero-content">
@@ -43,9 +53,12 @@ const data: typeof recipe.data & { servings?: number } = recipe.data;
 
       <section class="recipe-media">
         <div class="hero-media">
-          {data.featured_image ? (
-            <img src={data.featured_image} alt={data.title} class="hero-image hydrate-image" />
-          ) : (
+          <img 
+            src={data.featured_image || ''} 
+            alt={data.title} 
+            class={`hero-image hydrate-image ${!data.featured_image ? 'hidden' : ''}`} 
+          />
+          {!data.featured_image && (
             <div class="hero-fallback"></div>
           )}
         </div>
@@ -58,15 +71,15 @@ const data: typeof recipe.data & { servings?: number } = recipe.data;
           <div class="hero-meta">
             <div class="meta-card">
               <p class="meta-label">Prep</p>
-              <p class="meta-value hydrate-prep">{data.prep_time} min</p>
+              <p class="meta-value hydrate-prep">{data.prep_time ? `${data.prep_time} min` : '-'}</p>
             </div>
             <div class="meta-card">
               <p class="meta-label">Cook</p>
-              <p class="meta-value hydrate-cook">{data.cook_time} min</p>
+              <p class="meta-value hydrate-cook">{data.cook_time ? `${data.cook_time} min` : '-'}</p>
             </div>
             <div class="meta-card">
               <p class="meta-label">Servings</p>
-              <p class="meta-value hydrate-servings">{data.servings}</p>
+              <p class="meta-value hydrate-servings">{data.servings || '-'}</p>
             </div>
           </div>
         </aside>
@@ -80,7 +93,7 @@ const data: typeof recipe.data & { servings?: number } = recipe.data;
         <aside class="ingredients-card">
           <h2 class="section-title">Ingredients</h2>
           <ul class="ingredients-list hydrate-ingredients">
-            {data.ingredients.map((ingredient) => (
+            {(data.ingredients || []).map((ingredient) => (
               <li class="ingredient-row">
                 <span class="ingredient-amount">{ingredient.amount}</span>
                 <span class="ingredient-item">{ingredient.item}</span>
@@ -88,14 +101,14 @@ const data: typeof recipe.data & { servings?: number } = recipe.data;
             ))}
           </ul>
           <div style="margin-top: 1.5rem;">
-            <AddAllToShoppingListButton ingredients={data.ingredients} client:visible />
+            {!isGhost && <AddAllToShoppingListButton ingredients={data.ingredients} client:visible />}
           </div>
         </aside>
 
         <div class="method-card">
           <h2 class="section-title">Method</h2>
           <ol class="method-list hydrate-instructions">
-            {data.instructions.map((instruction, index) => (
+            {(data.instructions || []).map((instruction, index) => (
               <li class="method-step">
                 <span class="step-number">{String(index + 1).padStart(2, '0')}</span>
                 <p class="step-text">{instruction.step}</p>
@@ -112,13 +125,22 @@ const data: typeof recipe.data & { servings?: number } = recipe.data;
     document.addEventListener('astro:page-load', () => {
       const cacheKey = 'recipe_pending_v1_' + slug;
       const raw = localStorage.getItem(cacheKey);
-      if (!raw) return;
+      
+      const ghostEl = document.querySelector('[data-is-ghost="true"]');
+
+      if (!raw) {
+        if (ghostEl) {
+          // If it's a ghost page and no cache found, redirect to 404
+          window.location.href = '/404';
+        }
+        return;
+      }
 
       try {
         const { timestamp, data } = JSON.parse(raw);
         // If older than 10 minutes, ignore
         if (Date.now() - timestamp > 10 * 60 * 1000) {
-          localStorage.removeItem(cacheKey);
+          if (ghostEl) window.location.href = '/404';
           return;
         }
 
@@ -158,9 +180,12 @@ const data: typeof recipe.data & { servings?: number } = recipe.data;
 
         // Update image
         const imgEl = document.querySelector('.hydrate-image');
+        const fallbackEl = document.querySelector('.hero-fallback');
         if (imgEl && data.featured_image) {
           imgEl.src = data.featured_image;
           imgEl.alt = data.title;
+          imgEl.classList.remove('hidden');
+          if (fallbackEl) fallbackEl.classList.add('hidden');
         }
 
         // Update ingredients
@@ -183,6 +208,11 @@ const data: typeof recipe.data & { servings?: number } = recipe.data;
               <p class="step-text">${ins.step}</p>
             </li>
           `).join('');
+        }
+
+        // Show the pending deploy banner
+        if (typeof window.showPendingBanner === 'function') {
+          window.showPendingBanner();
         }
       } catch (e) {
         console.warn('Failed to hydrate from cache:', e);

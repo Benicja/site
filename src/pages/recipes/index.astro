@@ -318,73 +318,129 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         if (targetBtn) targetBtn.click();
       }
 
-      hydrateCards();
-    }
-
-    function hydrateCards() {
-      const items = document.querySelectorAll('.recipe-item');
-      items.forEach(item => {
+      function hydrateCardElement(item: HTMLElement, slug: string, data: any) {
         const card = item.querySelector('[data-recipe-slug]');
-        if (!card) return;
-        const slug = card.getAttribute('data-recipe-slug');
-        const cacheKey = 'recipe_pending_v1_' + slug;
-        const raw = localStorage.getItem(cacheKey);
-        if (!raw) return;
+        if (card) card.setAttribute('data-recipe-slug', slug);
+        
+        // Update item data attributes for search/filter
+        item.setAttribute('data-title', data.title.toLowerCase());
+        item.setAttribute('data-category', data.category.toLowerCase());
 
-        try {
-          const { timestamp, data } = JSON.parse(raw);
-          // If older than 10 minutes, ignore
-          if (Date.now() - timestamp > 10 * 60 * 1000) {
-            localStorage.removeItem(cacheKey);
-            return;
+        // Update card title
+        const titleLink = item.querySelector('.recipe-link');
+        if (titleLink) {
+          titleLink.textContent = data.title;
+          titleLink.setAttribute('href', `/recipes/${slug}`);
+        }
+        
+        // Update image link
+        const imageLink = item.querySelector('a.block.group');
+        if (imageLink) {
+          imageLink.setAttribute('href', `/recipes/${slug}`);
+        }
+
+        // Update heart button
+        const heartBtn = item.querySelector('.heart-button');
+        if (heartBtn) {
+          heartBtn.setAttribute('data-slug', slug);
+          heartBtn.setAttribute('data-hearted', 'false');
+          const heartCount = item.querySelector('.heart-count');
+          if (heartCount) heartCount.textContent = '0';
+        }
+
+        // Update description
+        const desc = item.querySelector('p.text-gray-500');
+        if (desc) desc.textContent = data.description;
+
+        // Update category tags
+        const tags = item.querySelectorAll('.category-tag');
+        tags.forEach(tag => {
+          tag.textContent = data.category;
+          tag.setAttribute('data-category', data.category);
+          tag.setAttribute('href', `/recipes?category=${data.category.toLowerCase()}`);
+        });
+
+        // Update image
+        const img = item.querySelector('.hydrate-image') || item.querySelector('img');
+        const fallback = item.querySelector('.hero-fallback');
+        if (img && data.featured_image) {
+          (img as HTMLImageElement).src = data.featured_image;
+          (img as HTMLImageElement).alt = data.title;
+          img.classList.remove('hidden');
+          if (fallback) fallback.classList.add('hidden');
+        }
+
+        // Update total time
+        const totalTime = (data.prep_time || 0) + (data.cook_time || 0);
+        const timeSpan = item.querySelector('.text-xs.md\\:text-sm.font-light.lowercase.text-gray-600');
+        if (timeSpan) timeSpan.textContent = `${totalTime} min`;
+
+        // Show item
+        item.classList.remove('opacity-0', 'invisible');
+        item.style.opacity = '1';
+        item.style.visibility = 'visible';
+      }
+
+      function hydrateCards() {
+        const grid = document.getElementById('recipes-grid');
+        const currentItems = document.querySelectorAll('.recipe-item') as NodeListOf<HTMLElement>;
+        const existingSlugs = new Set();
+        let hasHydrated = false;
+
+        // Hydrate existing cards
+        currentItems.forEach(item => {
+          const card = item.querySelector('[data-recipe-slug]');
+          if (!card) return;
+          const slug = card.getAttribute('data-recipe-slug');
+          existingSlugs.add(slug);
+
+          const cacheKey = 'recipe_pending_v1_' + slug;
+          const raw = localStorage.getItem(cacheKey);
+          if (!raw) return;
+
+          try {
+            const { timestamp, data } = JSON.parse(raw);
+            if (Date.now() - timestamp > 10 * 60 * 1000) {
+              localStorage.removeItem(cacheKey);
+              return;
+            }
+
+            hydrateCardElement(item, slug, data);
+            hasHydrated = true;
+          } catch (e) {}
+        });
+
+        // Inject new cards from cache
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('recipe_pending_v1_')) {
+            const slug = key.replace('recipe_pending_v1_', '');
+            if (!existingSlugs.has(slug)) {
+              try {
+                const { timestamp, data } = JSON.parse(localStorage.getItem(key)!);
+                if (Date.now() - timestamp < 10 * 60 * 1000) {
+                  const template = currentItems[0];
+                  if (template && grid) {
+                    const newItem = template.cloneNode(true) as HTMLElement;
+                    grid.prepend(newItem);
+                    hydrateCardElement(newItem, slug, data);
+                    hasHydrated = true;
+                  }
+                }
+              } catch (e) {}
+            }
           }
+        }
 
-          // Check if the live card already matches the cache
-          const titleLink = card.querySelector('.recipe-link');
-          const desc = card.querySelector('p.text-gray-500');
-          if (titleLink && titleLink.textContent?.trim() === data.title.trim() && 
-              desc && desc.textContent?.trim() === data.description.trim()) {
-            // Already matches, clear cache
-            localStorage.removeItem(cacheKey);
-            return;
-          }
+        if (hasHydrated && typeof (window as any).showPendingBanner === 'function') {
+          (window as any).showPendingBanner();
+        }
 
-          console.log('Optimistically hydrating recipe card from cache:', slug);
+        // Re-run grid update to apply current filters to new cards
+        updateGrid();
+      }
 
-          // Update item data attributes for search/filter
-          item.setAttribute('data-title', data.title.toLowerCase());
-          item.setAttribute('data-category', data.category.toLowerCase());
-
-          // Update card title
-          const titleLink = card.querySelector('.recipe-link');
-          if (titleLink) titleLink.textContent = data.title;
-
-          // Update description
-          const desc = card.querySelector('p.text-gray-500');
-          if (desc) desc.textContent = data.description;
-
-          // Update category tags
-          const tags = card.querySelectorAll('.category-tag');
-          tags.forEach(tag => {
-            tag.textContent = data.category;
-            tag.setAttribute('data-category', data.category);
-            tag.setAttribute('href', `/recipes?category=${data.category.toLowerCase()}`);
-          });
-
-          // Update image
-          const img = card.querySelector('img');
-          if (img && data.featured_image) {
-            img.src = data.featured_image;
-            img.alt = data.title;
-          }
-
-          // Update total time
-          const totalTime = (data.prep_time || 0) + (data.cook_time || 0);
-          const timeSpan = card.querySelector('.text-xs.md\\:text-sm.font-light.lowercase.text-gray-600');
-          if (timeSpan) timeSpan.textContent = `${totalTime} min`;
-
-        } catch (e) {}
-      });
+      hydrateCards();
     }
 
     // Re-initialize after view transitions
