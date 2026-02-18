@@ -201,12 +201,14 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
       revealItems();
 
 
-      let activeCategory = null;
+      let activeCategory: string | null = null;
       let showHeartedOnly = false;
 
-      const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
       function updateGrid() {
+        if (!searchInput || !noResults || !recipesGrid) return;
+
         const query = normalize(searchInput.value.trim());
         let hasResults = false;
 
@@ -243,7 +245,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         }
       }
 
-      function handleFilterClick(btn) {
+      function handleFilterClick(btn: HTMLElement) {
         const type = btn.getAttribute('data-filter');
         const value = btn.getAttribute('data-value');
         const wasActive = btn.getAttribute('data-active') === 'true';
@@ -287,9 +289,8 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 
       // Handle Category/Hearted Buttons (delegated)
       filterGroup?.addEventListener('click', (event) => {
-        const rawTarget = event.target;
-        const element = rawTarget instanceof Element ? rawTarget : rawTarget?.parentElement;
-        const btn = element?.closest ? element.closest('.filter-btn') : null;
+        const rawTarget = event.target as HTMLElement;
+        const btn = rawTarget?.closest('.filter-btn') as HTMLElement | null;
         if (!btn) return;
         handleFilterClick(btn);
       });
