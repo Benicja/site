@@ -120,7 +120,7 @@ export default function PWAInstallBanner() {
           <img src="/images/app_logo.png" alt="App Logo" className="w-full h-full object-cover" />
         </div>
         <p className="text-sm font-medium text-gray-900 pr-4">
-          Get the <span className="font-bold font-serif italic text-black">Benicja App</span> on mobile
+          Get the <span className="font-bold font-serif italic text-black">Benicja App</span>
         </p>
       </div>
       <div className="flex items-center gap-2">
