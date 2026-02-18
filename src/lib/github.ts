@@ -26,7 +26,7 @@ export async function readFromGitHub(filePath: string) {
 
   const response = await fetch(apiUrl, {
     headers: {
-      Authorization: `token ${GITHUB_TOKEN}`,
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
       Accept: 'application/vnd.github.v3.raw', // Request raw content directly
     },
   });
@@ -73,7 +73,7 @@ export async function commitToGitHub(filePath: string, content: string | Buffer,
   try {
     const getResponse = await fetch(`${apiUrl}?ref=${GITHUB_BRANCH}`, {
       headers: {
-        Authorization: `token ${GITHUB_TOKEN}`,
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
         Accept: 'application/vnd.github.v3+json',
       },
     });
@@ -95,7 +95,7 @@ export async function commitToGitHub(filePath: string, content: string | Buffer,
   const commitResponse = await fetch(apiUrl, {
     method: 'PUT',
     headers: {
-      Authorization: `token ${GITHUB_TOKEN}`,
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
       Accept: 'application/vnd.github.v3+json',
       'Content-Type': 'application/json',
     },
@@ -145,7 +145,7 @@ export async function deleteFromGitHub(filePath: string, message: string) {
   try {
     const getResponse = await fetch(`${apiUrl}?ref=${GITHUB_BRANCH}`, {
       headers: {
-        Authorization: `token ${GITHUB_TOKEN}`,
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
         Accept: 'application/vnd.github.v3+json',
       },
     });
@@ -165,7 +165,7 @@ export async function deleteFromGitHub(filePath: string, message: string) {
   const deleteResponse = await fetch(apiUrl, {
     method: 'DELETE',
     headers: {
-      Authorization: `token ${GITHUB_TOKEN}`,
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
       Accept: 'application/vnd.github.v3+json',
       'Content-Type': 'application/json',
     },

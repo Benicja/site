@@ -174,13 +174,13 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
     }
   </style>
 
-  <script is:inline>
+  <script>
     function initSearch() {
-      const searchInput = document.getElementById('recipe-search');
-      const recipeItems = document.querySelectorAll('.recipe-item');
+      const searchInput = document.getElementById('recipe-search') as HTMLInputElement;
+      const recipeItems = document.querySelectorAll('.recipe-item') as NodeListOf<HTMLElement>;
       const recipesGrid = document.getElementById('recipes-grid');
       const noResults = document.getElementById('no-results');
-      const filterBtns = document.querySelectorAll('.filter-btn');
+      const filterBtns = document.querySelectorAll('.filter-btn') as NodeListOf<HTMLButtonElement>;
       const filterGroup = document.querySelector('[data-filter-group]');
 
       if (!searchInput) return;
@@ -318,11 +318,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
       }
     }
 
-    // Initialize on load
-    initSearch();
-    
     // Re-initialize after view transitions
-    document.addEventListener('astro:after-swap', initSearch);
     document.addEventListener('astro:page-load', initSearch);
   </script>
 </Layout>

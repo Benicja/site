@@ -227,7 +227,7 @@ if (resolveAuth) {
       });
 
       // Restore after page swap
-      document.addEventListener('astro:after-swap', async () => {
+      document.addEventListener('astro:page-load', async () => {
         document.documentElement.style.viewTransitionName = '';
         document.body.style.viewTransitionName = '';
         
@@ -236,40 +236,12 @@ if (resolveAuth) {
           const scrollY = sessionStorage.getItem('recipesRestoreY');
           
           if (cardSlug || scrollY) {
-            const fallbackY = scrollY ? parseInt(scrollY) : undefined;
-            await restoreScrollPosition(cardSlug, fallbackY);
+            // Remove immediately to prevent double-restoration from other events
             sessionStorage.removeItem('recipesRestoreCard');
             sessionStorage.removeItem('recipesRestoreY');
-          }
-        }
-      });
-
-      // Final restoration on page load
-      document.addEventListener('astro:page-load', async () => {
-        if (window.location.pathname === '/recipes') {
-          const cardSlug = sessionStorage.getItem('recipesRestoreCard');
-          const scrollY = sessionStorage.getItem('recipesRestoreY');
-          
-          if (cardSlug || scrollY) {
+            
             const fallbackY = scrollY ? parseInt(scrollY) : undefined;
             await restoreScrollPosition(cardSlug, fallbackY);
-            sessionStorage.removeItem('recipesRestoreCard');
-            sessionStorage.removeItem('recipesRestoreY');
-          }
-        }
-      });
-
-      // Fallback on window load
-      window.addEventListener('load', async () => {
-        if (window.location.pathname === '/recipes') {
-          const cardSlug = sessionStorage.getItem('recipesRestoreCard');
-          const scrollY = sessionStorage.getItem('recipesRestoreY');
-          
-          if (cardSlug || scrollY) {
-            const fallbackY = scrollY ? parseInt(scrollY) : undefined;
-            await restoreScrollPosition(cardSlug, fallbackY);
-            sessionStorage.removeItem('recipesRestoreCard');
-            sessionStorage.removeItem('recipesRestoreY');
           }
         }
       });
