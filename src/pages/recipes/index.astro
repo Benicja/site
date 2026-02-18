@@ -176,11 +176,11 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 
   <script>
     function initSearch() {
-      const searchInput = document.getElementById('recipe-search') as HTMLInputElement;
-      const recipeItems = document.querySelectorAll('.recipe-item') as NodeListOf<HTMLElement>;
+      const searchInput = document.getElementById('recipe-search');
+      const recipeItems = document.querySelectorAll('.recipe-item');
       const recipesGrid = document.getElementById('recipes-grid');
       const noResults = document.getElementById('no-results');
-      const filterBtns = document.querySelectorAll('.filter-btn') as NodeListOf<HTMLButtonElement>;
+      const filterBtns = document.querySelectorAll('.filter-btn');
       const filterGroup = document.querySelector('[data-filter-group]');
 
       if (!searchInput) return;
@@ -201,10 +201,10 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
       revealItems();
 
 
-      let activeCategory: string | null = null;
+      let activeCategory = null;
       let showHeartedOnly = false;
 
-      const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
       function updateGrid() {
         if (!searchInput || !noResults || !recipesGrid) return;
@@ -245,7 +245,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         }
       }
 
-      function handleFilterClick(btn: HTMLElement) {
+      function handleFilterClick(btn) {
         const type = btn.getAttribute('data-filter');
         const value = btn.getAttribute('data-value');
         const wasActive = btn.getAttribute('data-active') === 'true';
@@ -289,8 +289,8 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 
       // Handle Category/Hearted Buttons (delegated)
       filterGroup?.addEventListener('click', (event) => {
-        const rawTarget = event.target as HTMLElement;
-        const btn = rawTarget?.closest('.filter-btn') as HTMLElement | null;
+        const rawTarget = event.target;
+        const btn = rawTarget?.closest('.filter-btn');
         if (!btn) return;
         handleFilterClick(btn);
       });
@@ -318,7 +318,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         if (targetBtn) targetBtn.click();
       }
 
-      function hydrateCardElement(item: HTMLElement, slug: string, data: any) {
+      function hydrateCardElement(item, slug, data) {
         const card = item.querySelector('[data-recipe-slug]');
         if (card) card.setAttribute('data-recipe-slug', slug);
         
@@ -364,13 +364,13 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         const img = item.querySelector('.hydrate-image') || item.querySelector('img');
         const fallback = item.querySelector('.hero-fallback');
         if (img && data.featured_image) {
-          (img as HTMLImageElement).src = data.featured_image;
-          (img as HTMLImageElement).alt = data.title;
+          img.src = data.featured_image;
+          img.alt = data.title;
           
           // Try loading from IndexedDB if it was recently added
-          if ( (window as any).recipeImageCache ) {
-            (window as any).recipeImageCache.get(data.featured_image).then((cachedUrl: string | null) => {
-              if (cachedUrl) (img as HTMLImageElement).src = cachedUrl;
+          if ( window.recipeImageCache ) {
+            window.recipeImageCache.get(data.featured_image).then((cachedUrl) => {
+              if (cachedUrl) img.src = cachedUrl;
             });
           }
 
@@ -391,7 +391,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 
       function hydrateCards() {
         const grid = document.getElementById('recipes-grid');
-        const currentItems = document.querySelectorAll('.recipe-item') as NodeListOf<HTMLElement>;
+        const currentItems = document.querySelectorAll('.recipe-item');
         const existingSlugs = new Set();
 
         // Hydrate existing cards
@@ -431,7 +431,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
                 if (Date.now() - timestamp < 10 * 60 * 1000) {
                   const template = currentItems[0];
                   if (template && grid) {
-                    const newItem = template.cloneNode(true) as HTMLElement;
+                    const newItem = template.cloneNode(true);
                     grid.prepend(newItem);
                     hydrateCardElement(newItem, slug, data);
                   }
