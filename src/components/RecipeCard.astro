@@ -26,9 +26,24 @@ const totalTime = data.prep_time + data.cook_time;
     outline: none !important;
     box-shadow: none !important;
   }
+
+  @keyframes heart-burst {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--tx), var(--ty)) scale(0);
+      opacity: 0;
+    }
+  }
+
+  .heart-particle {
+    animation: heart-burst 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+  }
 </style>
 
-<article class="group relative bg-[#ffffff] border border-gray-100 rounded-2xl overflow-hidden flex flex-col h-full" data-recipe-slug={slug}>
+<article class="group relative bg-[#ffffff] border border-gray-100 rounded-2xl overflow-hidden flex flex-col h-full" data-recipe-slug={slug} data-recipe-title={data.title}>
   <!-- Recipe Image -->
   <div class="aspect-[16/10] overflow-hidden bg-white relative">
     <img 
@@ -121,7 +136,7 @@ const totalTime = data.prep_time + data.cook_time;
   <div class="absolute top-3 right-3 z-[30]">
     <button 
       type="button"
-      class="heart-button focus:outline-none focus:ring-0 cursor-pointer p-1 select-none bg-transparent border-none appearance-none"
+      class="heart-button transition-all duration-300 hover:scale-110 active:scale-95 focus:outline-none focus:ring-0 cursor-pointer p-1 select-none bg-transparent border-none appearance-none"
       data-slug={slug}
       data-hearted={isHearted.toString()}
       data-user={user ? 'true' : 'false'}
@@ -139,6 +154,70 @@ const totalTime = data.prep_time + data.cook_time;
 </article>
 
 <script>
+  function createHeartBurst(button: HTMLElement) {
+    const rect = button.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    // Create 12 particles
+    const particleCount = 12;
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div');
+      
+      // Random angle around the circle
+      const angle = (i / particleCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+      const distance = 80 + Math.random() * 40;
+      
+      const tx = Math.cos(angle) * distance;
+      const ty = Math.sin(angle) * distance - 20; // Slight upward bias
+      
+      // Create keyframes for this specific particle
+      const keyframeName = `burst-${Math.random().toString(36).substring(7)}`;
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes ${keyframeName} {
+          0% {
+            transform: translate(0, 0) scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: translate(${tx}px, ${ty}px) scale(0);
+            opacity: 0;
+          }
+        }
+        .${keyframeName}-particle {
+          animation: ${keyframeName} 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      particle.className = `${keyframeName}-particle`;
+      particle.innerHTML = '❤️';
+      particle.style.position = 'fixed';
+      particle.style.left = centerX + 'px';
+      particle.style.top = centerY + 'px';
+      particle.style.fontSize = '20px';
+      particle.style.pointerEvents = 'none';
+      particle.style.zIndex = '9999';
+      particle.style.willChange = 'transform, opacity';
+      
+      document.body.appendChild(particle);
+      
+      // Remove after animation completes
+      setTimeout(() => {
+        particle.remove();
+        style.remove();
+      }, 800);
+    }
+  }
+
+  function showNotification(msg: string) {
+    const event = new CustomEvent('benicja:notification', {
+      detail: { msg, type: 'success', id: Math.random().toString(36).substring(2, 9) }
+    });
+    window.dispatchEvent(event);
+  }
+
   function initHearts() {
     const buttons = document.querySelectorAll('.heart-button');
     
@@ -212,7 +291,14 @@ const totalTime = data.prep_time + data.cook_time;
         updateUI(nowHearted);
         updateCount(nowHearted);
 
-        // 2. Background Request
+        // 2. Create burst effect when hearting
+        if (nowHearted) {
+          createHeartBurst(button as HTMLElement);
+          const title = card?.getAttribute('data-recipe-title') || 'Recipe';
+          showNotification(`Added ${title} to favourites`);
+        }
+
+        // 3. Background Request
         try {
           const res = await fetch('/api/recipes/heart', {
             method: 'POST',
