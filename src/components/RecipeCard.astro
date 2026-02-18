@@ -28,7 +28,7 @@ const totalTime = data.prep_time + data.cook_time;
   }
 </style>
 
-<article class="group relative bg-gray-50/80 border border-gray-200 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-700 ease-out flex flex-col h-full">
+<article class="group relative bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-700 ease-out flex flex-col h-full" data-recipe-slug={slug}>
   <!-- Recipe Image -->
   <div class="aspect-[16/10] overflow-hidden bg-gray-100 relative">
     {data.featured_image ? (
@@ -52,7 +52,7 @@ const totalTime = data.prep_time + data.cook_time;
       <AddToShoppingListIconButton ingredients={data.ingredients} className="w-8 h-8" />
       <a 
         href={`/recipes?category=${data.category}`}
-        class="hidden md:inline-block category-tag px-3 py-1 bg-white/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-widest text-gray-900 rounded-full shadow-sm hover:bg-white transition-colors cursor-pointer select-none"
+        class="hidden md:inline-block category-tag px-3 py-1 bg-white border border-gray-200 text-[10px] font-bold uppercase tracking-widest text-gray-900 rounded-full shadow-sm hover:bg-gray-50 transition-colors cursor-pointer select-none"
         data-category={data.category}
       >
         {data.category}
@@ -71,7 +71,7 @@ const totalTime = data.prep_time + data.cook_time;
         </h3>
         <a 
           href={`/recipes?category=${data.category}`}
-          class="md:hidden category-tag px-3 py-1 bg-white/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-widest text-gray-900 rounded-full shadow-sm hover:bg-white transition-colors cursor-pointer select-none"
+          class="md:hidden category-tag px-3 py-1 bg-white border border-gray-200 text-[10px] font-bold uppercase tracking-widest text-gray-900 rounded-full shadow-sm hover:bg-gray-50 transition-colors cursor-pointer select-none"
           data-category={data.category}
         >
           {data.category}
@@ -95,7 +95,7 @@ const totalTime = data.prep_time + data.cook_time;
     </div>
     
     <!-- Recipe Meta -->
-    <div class="pt-3 border-t border-gray-50 flex items-center justify-center -ml-4">
+    <div class="pt-3 border-t border-gray-100 flex items-center justify-center -ml-4">
       <div class="flex items-center gap-4 text-[9px] md:text-[11px] font-bold uppercase tracking-widest text-gray-400">
         <div class="flex items-center gap-1">
           <svg class="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
