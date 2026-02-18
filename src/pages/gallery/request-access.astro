@@ -34,8 +34,23 @@ if (accessRequest?.status === 'pending') {
 const email = user.user_email;
 ---
 
+<style>
+  @keyframes page-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .gallery-page {
+    animation: page-fade-in 0.25s ease-out;
+  }
+</style>
+
 <Layout title="Request Access" description="Request access to the family photo gallery" user={user}>
-  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+  <div class="gallery-page max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
     <div class="text-center mb-16">
       <h1 class="text-5xl font-serif font-bold text-gray-900 mb-6">Request Access</h1>
       <p class="text-xl text-gray-500 font-light leading-relaxed">

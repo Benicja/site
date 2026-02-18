@@ -73,8 +73,23 @@ const albumsByYear = albumsWithDates.reduce((acc, item) => {
 }, {} as Record<string, typeof albumsWithDates>);
 ---
 
+<style>
+  @keyframes page-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .gallery-page {
+    animation: page-fade-in 0.25s ease-out;
+  }
+</style>
+
 <Layout title="Family Gallery" description="Private family photo albums - sign in required" user={user} isAdmin={isAdmin} enableTransitions={false}>
-  <div class={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${!user ? 'h-[calc(100vh-80px)] flex flex-col justify-center' : 'pt-6 pb-4 sm:pb-10'}`}>
+  <div class={`gallery-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${!user ? 'h-[calc(100vh-80px)] flex flex-col justify-center' : 'pt-6 pb-4 sm:pb-10'}`}>
     {error && (
       <div class="mb-12 p-6 bg-red-50 border border-red-100 text-red-800 rounded-2xl">
         <p class="font-serif text-xl mb-2">Something went wrong</p>

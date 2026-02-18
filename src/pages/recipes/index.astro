@@ -66,8 +66,23 @@ const userHearts = user ? await getUserHearts(user.user_email) : new Set();
 const formatCategories = (value: unknown): string => (Array.isArray(value) ? value.join(',') : String(value));
 ---
 
+<style>
+  @keyframes page-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .recipes-page {
+    animation: page-fade-in 0.25s ease-out;
+  }
+</style>
+
 <Layout title="Recipes" description="A collection of our favorite family recipes." user={user}>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4 sm:pb-10">
+  <div class="recipes-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4 sm:pb-10">
     {recipes.length > 0 ? (
       <div class="space-y-6">
         {/* Search & Filters */}
@@ -78,7 +93,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
                 type="text" 
                 id="recipe-search" 
                 placeholder="Search recipes..." 
-                class="w-full px-5 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-gray-600 transition-colors duration-[250ms] font-normal text-black text-base"
+                class="w-full px-5 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-gray-600 font-normal text-black text-base"
                 inputmode="search"
                 autocomplete="off"
                 enterkeyhint="search"
@@ -98,7 +113,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
             {[ 'Breakfast', 'Dinner', 'Dessert' ].map(cat => (
               <button 
                 type="button"
-                class="filter-btn px-4 py-1.5 rounded-full border border-gray-200 bg-white text-[10px] font-bold uppercase tracking-widest text-gray-600 transition-all duration-100 select-none data-[active=true]:bg-gray-50 data-[active=true]:text-gray-950 data-[active=true]:border-gray-950 [&:not([data-active=true])]:hover:text-gray-900 [&:not([data-active=true])]:hover:border-gray-400"
+                class="filter-btn px-4 py-1.5 rounded-full border border-gray-200 bg-white text-[10px] font-bold uppercase tracking-widest text-gray-600 select-none data-[active=true]:bg-gray-50 data-[active=true]:text-gray-950 data-[active=true]:border-gray-950 [&:not([data-active=true])]:hover:text-gray-900 [&:not([data-active=true])]:hover:border-gray-400"
                 data-filter="category"
                 data-value={cat.toLowerCase()}
                 data-active="false"
@@ -110,11 +125,11 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
             {user && (
               <button 
                 type="button"
-                class="filter-btn px-4 py-1.5 rounded-full border border-gray-200 bg-white text-[10px] font-bold uppercase tracking-widest text-gray-600 transition-all duration-100 select-none flex items-center gap-2 data-[active=true]:bg-gray-50 data-[active=true]:text-gray-950 data-[active=true]:border-gray-950 [&:not([data-active=true])]:hover:text-gray-900 [&:not([data-active=true])]:hover:border-gray-400"
+                class="filter-btn px-4 py-1.5 rounded-full border border-gray-200 bg-white text-[10px] font-bold uppercase tracking-widest text-gray-600 select-none flex items-center gap-2 data-[active=true]:bg-gray-50 data-[active=true]:text-gray-950 data-[active=true]:border-gray-950 [&:not([data-active=true])]:hover:text-gray-900 [&:not([data-active=true])]:hover:border-gray-400"
                 data-filter="hearted"
                 data-active="false"
               >
-                <svg class="w-3.5 h-3.5 fill-none stroke-current transition-all duration-100" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 fill-none stroke-current" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
                 Favourites
@@ -127,8 +142,8 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
           <div id="recipes-grid" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-x-8 md:gap-y-8">
             {sortedRecipes.map((recipe, index) => (
               <div 
-                class="recipe-item opacity-0 invisible" 
-                style={`--stagger: ${index}; content-visibility: auto; contain-intrinsic-size: 1px 400px;`}
+                class="recipe-item" 
+                style={`content-visibility: auto; contain-intrinsic-size: 1px 400px;`}
                 data-title={recipe.data.title.toLowerCase()}
                 data-category={formatCategories(recipe.data.category).toLowerCase()}
                 data-hearted={userHearts.has(recipe.slug).toString()}
@@ -155,24 +170,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
     )}
   </div>
 
-  <style is:global>
-    @keyframes entry-fade-in {
-      from { 
-        opacity: 0; 
-        transform: translateY(10px);
-        visibility: hidden;
-      }
-      to { 
-        opacity: 1; 
-        transform: translateY(0);
-        visibility: visible;
-      }
-    }
 
-    .recipe-item.reveal {
-      animation: entry-fade-in 0.4s ease-out forwards;
-    }
-  </style>
 
   <script>
     function initSearch() {
@@ -185,17 +183,9 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 
       if (!searchInput) return;
 
-      // STAGGERED REVEAL on initial load
-      // We reveal in small batches to avoid frame spikes
+      // Items are already visible, no animation needed
       const revealItems = () => {
-        recipeItems.forEach((item, i) => {
-          // Calculate a small delay for each (e.g. 15ms per item)
-          // This spreads the "creation" work across many frames
-          setTimeout(() => {
-            item.classList.remove('opacity-0', 'invisible');
-            item.classList.add('reveal');
-          }, i * 12);
-        });
+        // No-op: animations removed
       };
       
       revealItems();

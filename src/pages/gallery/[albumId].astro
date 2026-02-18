@@ -31,6 +31,21 @@ if (!album) {
 }
 ---
 
+<style>
+  @keyframes page-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .gallery-page {
+    animation: page-fade-in 0.25s ease-out;
+  }
+</style>
+
 <Layout
   title={`${getDisplayTitle(album.title)} - Gallery`}
   description={`View photos from ${getDisplayTitle(album.title)}`}
@@ -38,7 +53,7 @@ if (!album) {
   isAdmin={isAdmin}
   enableTransitions={false}
 >
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 sm:pb-12">
+  <div class="gallery-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 sm:pb-12">
     <!-- Breadcrumbs -->
     <nav class="flex mb-8 text-sm font-medium text-gray-500" aria-label="Breadcrumb">
       <ol class="inline-flex items-center space-x-1 md:space-x-3">
