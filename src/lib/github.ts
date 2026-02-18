@@ -2,8 +2,14 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 const GITHUB_TOKEN = import.meta.env.GITHUB_TOKEN;
-const GITHUB_REPO = import.meta.env.GITHUB_REPO; // e.g. "owner/repo"
+let GITHUB_REPO = import.meta.env.GITHUB_REPO; // e.g. "owner/repo"
 const GITHUB_BRANCH = import.meta.env.GITHUB_BRANCH || 'main';
+
+// Sanitize GITHUB_REPO if it's a full URL
+if (GITHUB_REPO && GITHUB_REPO.includes('github.com/')) {
+  GITHUB_REPO = GITHUB_REPO.split('github.com/')[1].split('?')[0].split('#')[0];
+  if (GITHUB_REPO.endsWith('.git')) GITHUB_REPO = GITHUB_REPO.slice(0, -4);
+}
 
 /**
  * Reads a file from GitHub or local file system.
@@ -16,8 +22,11 @@ export async function readFromGitHub(filePath: string) {
   }
 
   // Ensure GITHUB_TOKEN and GITHUB_REPO are set for production or forced GitHub mode
-  if (!GITHUB_TOKEN || !GITHUB_REPO) {
-    throw new Error('GITHUB_TOKEN and GITHUB_REPO must be set for production reads');
+  if (!GITHUB_TOKEN) {
+    throw new Error('GITHUB_TOKEN environment variable is not set');
+  }
+  if (!GITHUB_REPO) {
+    throw new Error('GITHUB_REPO environment variable is not set (should be "owner/repo")');
   }
 
   // Normalize path for GitHub
@@ -36,7 +45,11 @@ export async function readFromGitHub(filePath: string) {
       throw new Error(`File not found: ${relativePath}`);
     }
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(`GitHub Read API Error: ${errorData.message || 'Unknown error'}`);
+    let msg = errorData.message || 'Unknown error';
+    if (response.status === 403 && msg.includes('personal access token')) {
+      msg = `${msg}. Ensure your PAT has "Contents: Read" permission and is authorized for this repository (and has SSO enabled if using an organization).`;
+    }
+    throw new Error(`GitHub Read API Error (${response.status}): ${msg}`);
   }
 
   return await response.text();
@@ -60,8 +73,11 @@ export async function commitToGitHub(filePath: string, content: string | Buffer,
   }
 
   // Ensure GITHUB_TOKEN and GITHUB_REPO are set for production or forced GitHub mode
-  if (!GITHUB_TOKEN || !GITHUB_REPO) {
-    throw new Error('GITHUB_TOKEN and GITHUB_REPO must be set for production commits');
+  if (!GITHUB_TOKEN) {
+    throw new Error('GITHUB_TOKEN environment variable is not set');
+  }
+  if (!GITHUB_REPO) {
+    throw new Error('GITHUB_REPO environment variable is not set (should be "owner/repo")');
   }
 
   // Normalize path for GitHub (no leading slash, use forward slashes)
@@ -81,9 +97,15 @@ export async function commitToGitHub(filePath: string, content: string | Buffer,
     if (getResponse.ok) {
       const data = (await getResponse.json()) as any;
       sha = data.sha;
+    } else {
+        const errorData = await getResponse.json().catch(() => ({}));
+        if (getResponse.status === 403 && (errorData.message || '').includes('personal access token')) {
+            throw new Error(`GitHub Auth Error (${getResponse.status}): ${errorData.message}. Ensure your token has "Contents: Read" permission.`);
+        }
     }
-  } catch (error) {
-    // Ignore error, assume new file
+  } catch (error: any) {
+    if (error.message.includes('GitHub Auth Error')) throw error;
+    // Ignore other errors, assume new file
   }
 
   // 2. Prepare content (handle string vs buffer)
@@ -108,9 +130,13 @@ export async function commitToGitHub(filePath: string, content: string | Buffer,
   });
 
   if (!commitResponse.ok) {
-    const errorData = await commitResponse.json();
+    const errorData = await commitResponse.json().catch(() => ({ message: commitResponse.statusText }));
     console.error('GitHub API Error:', errorData);
-    throw new Error(`GitHub API Error: ${errorData.message || 'Unknown error'}`);
+    let msg = errorData.message || 'Unknown error';
+    if (commitResponse.status === 403 && msg.includes('personal access token')) {
+      msg = `${msg}. ACTION REQUIRED: 1. Ensure your PAT has "Contents: Write" permission. 2. Ensure your PAT is authorized for this repository. 3. If using an organization, ensure SAML SSO is authorized for the token.`;
+    }
+    throw new Error(`GitHub API Error (${commitResponse.status}): ${msg}`);
   }
 
   return { success: true, method: 'github', sha: (await commitResponse.json()).content.sha };
@@ -132,8 +158,11 @@ export async function deleteFromGitHub(filePath: string, message: string) {
   }
 
   // Ensure GITHUB_TOKEN and GITHUB_REPO are set
-  if (!GITHUB_TOKEN || !GITHUB_REPO) {
-    throw new Error('GITHUB_TOKEN and GITHUB_REPO must be set for production deletes');
+  if (!GITHUB_TOKEN) {
+    throw new Error('GITHUB_TOKEN environment variable is not set');
+  }
+  if (!GITHUB_REPO) {
+    throw new Error('GITHUB_REPO environment variable is not set (should be "owner/repo")');
   }
 
   // Normalize path for GitHub
@@ -152,7 +181,13 @@ export async function deleteFromGitHub(filePath: string, message: string) {
 
     if (!getResponse.ok) {
       if (getResponse.status === 404) return { success: true, alreadyDeleted: true };
-      throw new Error(`Failed to get file SHA for deletion: ${getResponse.statusText}`);
+      
+      const errorData = await getResponse.json().catch(() => ({}));
+      let msg = errorData.message || getResponse.statusText;
+      if (getResponse.status === 403 && msg.includes('personal access token')) {
+        msg = `${msg}. Ensure your PAT has "Contents: Read" permission.`;
+      }
+      throw new Error(`Failed to get file SHA for deletion (${getResponse.status}): ${msg}`);
     }
 
     const data = (await getResponse.json()) as any;
@@ -177,8 +212,12 @@ export async function deleteFromGitHub(filePath: string, message: string) {
   });
 
   if (!deleteResponse.ok) {
-    const errorData = await deleteResponse.json();
-    throw new Error(`GitHub Delete API Error: ${errorData.message || 'Unknown error'}`);
+    const errorData = await deleteResponse.json().catch(() => ({ message: deleteResponse.statusText }));
+    let msg = errorData.message || 'Unknown error';
+    if (deleteResponse.status === 403 && msg.includes('personal access token')) {
+      msg = `${msg}. ACTION REQUIRED: Ensure your PAT has "Contents: Write" permission.`;
+    }
+    throw new Error(`GitHub Delete API Error (${deleteResponse.status}): ${msg}`);
   }
 
   return { success: true, method: 'github' };

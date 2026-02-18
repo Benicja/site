@@ -317,6 +317,74 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         const targetBtn = Array.from(filterBtns).find(b => b.getAttribute('data-value') === initialCat);
         if (targetBtn) targetBtn.click();
       }
+
+      hydrateCards();
+    }
+
+    function hydrateCards() {
+      const items = document.querySelectorAll('.recipe-item');
+      items.forEach(item => {
+        const card = item.querySelector('[data-recipe-slug]');
+        if (!card) return;
+        const slug = card.getAttribute('data-recipe-slug');
+        const cacheKey = 'recipe_pending_v1_' + slug;
+        const raw = localStorage.getItem(cacheKey);
+        if (!raw) return;
+
+        try {
+          const { timestamp, data } = JSON.parse(raw);
+          // If older than 10 minutes, ignore
+          if (Date.now() - timestamp > 10 * 60 * 1000) {
+            localStorage.removeItem(cacheKey);
+            return;
+          }
+
+          // Check if the live card already matches the cache
+          const titleLink = card.querySelector('.recipe-link');
+          const desc = card.querySelector('p.text-gray-500');
+          if (titleLink && titleLink.textContent?.trim() === data.title.trim() && 
+              desc && desc.textContent?.trim() === data.description.trim()) {
+            // Already matches, clear cache
+            localStorage.removeItem(cacheKey);
+            return;
+          }
+
+          console.log('Optimistically hydrating recipe card from cache:', slug);
+
+          // Update item data attributes for search/filter
+          item.setAttribute('data-title', data.title.toLowerCase());
+          item.setAttribute('data-category', data.category.toLowerCase());
+
+          // Update card title
+          const titleLink = card.querySelector('.recipe-link');
+          if (titleLink) titleLink.textContent = data.title;
+
+          // Update description
+          const desc = card.querySelector('p.text-gray-500');
+          if (desc) desc.textContent = data.description;
+
+          // Update category tags
+          const tags = card.querySelectorAll('.category-tag');
+          tags.forEach(tag => {
+            tag.textContent = data.category;
+            tag.setAttribute('data-category', data.category);
+            tag.setAttribute('href', `/recipes?category=${data.category.toLowerCase()}`);
+          });
+
+          // Update image
+          const img = card.querySelector('img');
+          if (img && data.featured_image) {
+            img.src = data.featured_image;
+            img.alt = data.title;
+          }
+
+          // Update total time
+          const totalTime = (data.prep_time || 0) + (data.cook_time || 0);
+          const timeSpan = card.querySelector('.text-xs.md\\:text-sm.font-light.lowercase.text-gray-600');
+          if (timeSpan) timeSpan.textContent = `${totalTime} min`;
+
+        } catch (e) {}
+      });
     }
 
     // Re-initialize after view transitions

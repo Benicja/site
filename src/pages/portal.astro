@@ -910,6 +910,23 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
               }
             }
 
+            // Save to optimistic cache
+            const cacheData = {
+              title: document.getElementById('edit-recipe-title').value,
+              description: document.getElementById('edit-recipe-description').value,
+              category: document.getElementById('edit-recipe-category').value,
+              prep_time: parseInt(document.getElementById('edit-recipe-prep-time').value),
+              cook_time: parseInt(document.getElementById('edit-recipe-cook-time').value),
+              servings: parseInt(document.getElementById('edit-recipe-servings').value) || 0,
+              featured_image: featuredImageUrl,
+              ingredients,
+              instructions
+            };
+            localStorage.setItem('recipe_pending_v1_' + recipeSlug, JSON.stringify({
+                timestamp: Date.now(),
+                data: cacheData
+            }));
+
             closeEditModal();
             setTimeout(() => window.location.reload(), 500);
           } catch (err) {

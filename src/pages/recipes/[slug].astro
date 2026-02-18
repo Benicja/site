@@ -30,7 +30,7 @@ const data: typeof recipe.data & { servings?: number } = recipe.data;
     <div class="recipe-shell">
       <section class="recipe-hero">
         <div class="hero-content">
-          <h1 class="hero-title">{data.title}</h1>
+          <h1 class="hero-title hydrate-title">{data.title}</h1>
           <div class="hero-rating">
             <svg class="hero-heart" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 20.364l-7.682-7.682a4.5 4.5 0 016.364-6.364L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364z" />
@@ -44,7 +44,7 @@ const data: typeof recipe.data & { servings?: number } = recipe.data;
       <section class="recipe-media">
         <div class="hero-media">
           {data.featured_image ? (
-            <img src={data.featured_image} alt={data.title} class="hero-image" />
+            <img src={data.featured_image} alt={data.title} class="hero-image hydrate-image" />
           ) : (
             <div class="hero-fallback"></div>
           )}
@@ -53,33 +53,33 @@ const data: typeof recipe.data & { servings?: number } = recipe.data;
           <h2 class="section-title">Details</h2>
           <div class="meta-card meta-card-category">
             <p class="meta-label">Category</p>
-            <p class="meta-value">{data.category}</p>
+            <p class="meta-value hydrate-category">{data.category}</p>
           </div>
           <div class="hero-meta">
             <div class="meta-card">
               <p class="meta-label">Prep</p>
-              <p class="meta-value">{data.prep_time} min</p>
+              <p class="meta-value hydrate-prep">{data.prep_time} min</p>
             </div>
             <div class="meta-card">
               <p class="meta-label">Cook</p>
-              <p class="meta-value">{data.cook_time} min</p>
+              <p class="meta-value hydrate-cook">{data.cook_time} min</p>
             </div>
             <div class="meta-card">
               <p class="meta-label">Servings</p>
-              <p class="meta-value">{data.servings}</p>
+              <p class="meta-value hydrate-servings">{data.servings}</p>
             </div>
           </div>
         </aside>
       </section>
 
       <section class="recipe-description">
-        <p class="description-text">{data.description}</p>
+        <p class="description-text hydrate-description">{data.description}</p>
       </section>
 
       <section class="recipe-body">
         <aside class="ingredients-card">
           <h2 class="section-title">Ingredients</h2>
-          <ul class="ingredients-list">
+          <ul class="ingredients-list hydrate-ingredients">
             {data.ingredients.map((ingredient) => (
               <li class="ingredient-row">
                 <span class="ingredient-amount">{ingredient.amount}</span>
@@ -94,7 +94,7 @@ const data: typeof recipe.data & { servings?: number } = recipe.data;
 
         <div class="method-card">
           <h2 class="section-title">Method</h2>
-          <ol class="method-list">
+          <ol class="method-list hydrate-instructions">
             {data.instructions.map((instruction, index) => (
               <li class="method-step">
                 <span class="step-number">{String(index + 1).padStart(2, '0')}</span>
@@ -107,6 +107,88 @@ const data: typeof recipe.data & { servings?: number } = recipe.data;
     </div>
   </div>
 
+  <script define:vars={{ slug }}>
+    // Hydrate from localStorage for optimistic updates
+    document.addEventListener('astro:page-load', () => {
+      const cacheKey = 'recipe_pending_v1_' + slug;
+      const raw = localStorage.getItem(cacheKey);
+      if (!raw) return;
+
+      try {
+        const { timestamp, data } = JSON.parse(raw);
+        // If older than 10 minutes, ignore
+        if (Date.now() - timestamp > 10 * 60 * 1000) {
+          localStorage.removeItem(cacheKey);
+          return;
+        }
+
+        // Compare title to see if the live page has caught up
+        const serverTitle = document.querySelector('.hydrate-title')?.textContent;
+        if (serverTitle === data.title) {
+          // The live page is now up to date or matches the cache
+          // Check other fields just to be sure
+          const serverDesc = document.querySelector('.hydrate-description')?.textContent;
+          if (serverDesc === data.description) {
+            console.log('Live page matches cache. Clearing optimistic cache.');
+            localStorage.removeItem(cacheKey);
+            return;
+          }
+        }
+
+        console.log('Optimistically hydrating recipe from cache:', slug);
+
+        // Update basic text
+        const titleEl = document.querySelector('.hydrate-title');
+        if (titleEl) titleEl.textContent = data.title;
+        
+        const descEl = document.querySelector('.hydrate-description');
+        if (descEl) descEl.textContent = data.description;
+        
+        const categoryEl = document.querySelector('.hydrate-category');
+        if (categoryEl) categoryEl.textContent = data.category;
+        
+        const prepEl = document.querySelector('.hydrate-prep');
+        if (prepEl) prepEl.textContent = `${data.prep_time} min`;
+        
+        const cookEl = document.querySelector('.hydrate-cook');
+        if (cookEl) cookEl.textContent = `${data.cook_time} min`;
+        
+        const servingsEl = document.querySelector('.hydrate-servings');
+        if (servingsEl) servingsEl.textContent = data.servings;
+
+        // Update image
+        const imgEl = document.querySelector('.hydrate-image');
+        if (imgEl && data.featured_image) {
+          imgEl.src = data.featured_image;
+          imgEl.alt = data.title;
+        }
+
+        // Update ingredients
+        const ingredientsList = document.querySelector('.hydrate-ingredients');
+        if (ingredientsList && data.ingredients) {
+          ingredientsList.innerHTML = data.ingredients.map(ing => `
+            <li class="ingredient-row">
+              <span class="ingredient-amount">${ing.amount}</span>
+              <span class="ingredient-item">${ing.item}</span>
+            </li>
+          `).join('');
+        }
+
+        // Update instructions
+        const instructionsList = document.querySelector('.hydrate-instructions');
+        if (instructionsList && data.instructions) {
+          instructionsList.innerHTML = data.instructions.map((ins, i) => `
+            <li class="method-step">
+              <span class="step-number">${String(i + 1).padStart(2, '0')}</span>
+              <p class="step-text">${ins.step}</p>
+            </li>
+          `).join('');
+        }
+      } catch (e) {
+        console.warn('Failed to hydrate from cache:', e);
+      }
+    });
+  </script>
 </Layout>
 
 <style>
