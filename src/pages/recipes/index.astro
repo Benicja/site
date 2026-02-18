@@ -113,7 +113,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
             {[ 'Breakfast', 'Dinner', 'Dessert' ].map(cat => (
               <button 
                 type="button"
-                class="filter-btn px-4 py-1.5 rounded-full border border-gray-200 bg-white text-[10px] font-bold uppercase tracking-widest text-gray-600 select-none data-[active=true]:bg-gray-50 data-[active=true]:text-gray-950 data-[active=true]:border-gray-950 [&:not([data-active=true])]:hover:text-gray-900 [&:not([data-active=true])]:hover:border-gray-400"
+                class="filter-btn px-4 py-1.5 rounded-full border border-gray-200 bg-white text-[10px] font-bold uppercase tracking-widest text-gray-600 select-none data-[active=true]:bg-gray-50 data-[active=true]:text-gray-950 data-[active=true]:border-gray-950 md:[&:not([data-active=true])]:hover:text-gray-900 md:[&:not([data-active=true])]:hover:border-gray-400"
                 data-filter="category"
                 data-value={cat.toLowerCase()}
                 data-active="false"
@@ -125,7 +125,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
             {user && (
               <button 
                 type="button"
-                class="filter-btn px-4 py-1.5 rounded-full border border-gray-200 bg-white text-[10px] font-bold uppercase tracking-widest text-gray-600 select-none flex items-center gap-2 data-[active=true]:bg-gray-50 data-[active=true]:text-gray-950 data-[active=true]:border-gray-950 [&:not([data-active=true])]:hover:text-gray-900 [&:not([data-active=true])]:hover:border-gray-400"
+                class="filter-btn px-4 py-1.5 rounded-full border border-gray-200 bg-white text-[10px] font-bold uppercase tracking-widest text-gray-600 select-none flex items-center gap-2 data-[active=true]:bg-gray-50 data-[active=true]:text-gray-950 data-[active=true]:border-gray-950 md:[&:not([data-active=true])]:hover:text-gray-900 md:[&:not([data-active=true])]:hover:border-gray-400"
                 data-filter="hearted"
                 data-active="false"
               >
