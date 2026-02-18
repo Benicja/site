@@ -240,6 +240,10 @@ SITE_URL=https://benicja.netlify.app
      - `SUPABASE_ANON_KEY`
      - `SUPABASE_SERVICE_KEY`
      - `SITE_URL` = `https://benicja.com`
+     - `RESEND_API_KEY` (from your Resend account)
+     - `RESEND_FROM` = `no-reply@benicja.com` (or your verified domain)
+     - `ADMIN_REQUESTS_EMAIL` = `your-primary-email@gmail.com`
+     - `REQUEST_ACTION_SECRET` = (any long random string for securing email links)
 
 ✅ **Configuration complete!**
 

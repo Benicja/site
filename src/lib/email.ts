@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 
 const resendApiKey = import.meta.env.RESEND_API_KEY;
 const resendFrom = import.meta.env.RESEND_FROM || 'no-reply@benicja.com';
-const adminEmail = import.meta.env.ADMIN_REQUESTS_EMAIL || 'ben.horton.business@gmail.com';
+const adminEmail = import.meta.env.ADMIN_REQUESTS_EMAIL || 'ben.horton.finance+benicja@gmail.com'; 
 const siteUrl = (import.meta.env.SITE_URL || 'https://benicja.com').replace(/\/$/, '');
 const portalUrl = `${siteUrl}/portal`;
 const requestActionSecret = import.meta.env.REQUEST_ACTION_SECRET;
@@ -66,13 +66,23 @@ export async function sendAdminAccessRequestEmail(input: {
       ? `\n\nApprove: ${actionLinks.approve}\nReject: ${actionLinks.deny}`
       : '');
 
-  await client.emails.send({
-    from: resendFrom,
-    to: adminEmail,
-    subject: 'Benicja View Gallery Request',
-    html,
-    text
-  });
+  try {
+    const { data, error } = await client.emails.send({
+      from: resendFrom,
+      to: adminEmail,
+      subject: 'Benicja View Gallery Request',
+      html,
+      text
+    });
+
+    if (error) {
+      console.error('Resend error sending admin request notification:', error);
+    } else {
+      console.log('Admin request notification sent successfully to:', adminEmail);
+    }
+  } catch (err) {
+    console.error('Fatal error calling Resend for admin notification:', err);
+  }
 }
 
 async function buildActionLinks(requestToken: string) {
@@ -157,11 +167,19 @@ export async function sendUserAccessDecisionEmail(input: {
       : 'Thanks for your request. At this time, access has not been approved.'
   }${isApproved ? `\n\nGo to the gallery: ${galleryUrl}` : ''}\n\nBenicja's Kitchen`;
 
-  await client.emails.send({
-    from: resendFrom,
-    to: input.email,
-    subject,
-    html,
-    text
-  });
+  try {
+    const { data, error } = await client.emails.send({
+      from: resendFrom,
+      to: input.email,
+      subject,
+      html,
+      text
+    });
+
+    if (error) {
+      console.error('Resend error sending user access decision email:', error);
+    }
+  } catch (err) {
+    console.error('Fatal error calling Resend for user notification:', err);
+  }
 }
