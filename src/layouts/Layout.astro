@@ -2,6 +2,7 @@
 import { ClientRouter } from 'astro:transitions';
 import ShoppingListButton from '../components/ShoppingListButton.tsx';
 import NotificationStack from '../components/NotificationStack.tsx';
+import PWAInstallBanner from '../components/PWAInstallBanner.tsx';
 import { SESSION_COOKIE, getApprovedUser, getUserFromSession } from '../lib/auth';
 
 interface Props {
@@ -56,11 +57,221 @@ if (resolveAuth) {
     <link rel="icon" type="image/png" sizes="192x192" href="/images/site_logo_filled_inverted_512.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/images/site_logo_filled_inverted_512.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/images/site_logo_filled_inverted_512.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Benicja" />
+    <link rel="manifest" href="/manifest.json" />
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.error('Service Worker registration failed:', err);
+          });
+        });
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
     <script is:inline src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     {enableTransitions && <ClientRouter />}
+    <script is:inline>
+      // Enable manual scroll restoration
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
+
+      // Identify which recipe card is visible and save it
+      const getVisibleRecipeCard = () => {
+        const cards = document.querySelectorAll('[data-recipe-slug]');
+        if (cards.length === 0) return null;
+        
+        const viewportCenter = window.innerHeight / 2;
+        let closestCard = null;
+        let closestDistance = Infinity;
+        
+        cards.forEach((card) => {
+          const rect = card.getBoundingClientRect();
+          const cardCenter = (rect.top + rect.bottom) / 2;
+          const distance = Math.abs(cardCenter - viewportCenter);
+          
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestCard = card.getAttribute('data-recipe-slug');
+          }
+        });
+        
+        return closestCard;
+      };
+
+      // Save scroll tracking
+      let saveScrollTimeout: any;
+      if (window.location.pathname === '/recipes') {
+        const saveScrollData = () => {
+          clearTimeout(saveScrollTimeout);
+          saveScrollTimeout = setTimeout(() => {
+            const recipeSlug = getVisibleRecipeCard();
+            if (recipeSlug) {
+              sessionStorage.setItem('recipesVisibleCard', recipeSlug);
+            }
+            sessionStorage.setItem('recipesScrollPosition', window.scrollY.toString());
+          }, 100); // Debounce
+        };
+        
+        window.addEventListener('scroll', saveScrollData, { passive: true });
+        saveScrollData();
+      }
+
+      // Wait for all images to load
+      const waitForImagesLoaded = () => {
+        return new Promise((resolve) => {
+          const images = document.querySelectorAll('img');
+          if (images.length === 0) {
+            resolve(null);
+            return;
+          }
+          
+          let loadedCount = 0;
+          const totalImages = images.length;
+          
+          images.forEach((img) => {
+            if (img.complete) {
+              loadedCount++;
+              if (loadedCount === totalImages) resolve(null);
+            } else {
+              img.onload = () => {
+                loadedCount++;
+                if (loadedCount === totalImages) resolve(null);
+              };
+              img.onerror = () => {
+                loadedCount++;
+                if (loadedCount === totalImages) resolve(null);
+              };
+            }
+          });
+          
+          // Timeout after 3 seconds
+          setTimeout(() => resolve(null), 3000);
+        });
+      };
+
+      // Scroll to recipe card or fallback to saved Y position
+      const restoreScrollPosition = async (recipeSlug?: string | null, fallbackY?: number) => {
+        await waitForImagesLoaded();
+        
+        // Small delay for layout to settle
+        await new Promise(r => setTimeout(r, 100));
+        
+        // Try to scroll to the recipe card first
+        if (recipeSlug) {
+          const recipeCard = document.querySelector(`[data-recipe-slug="${recipeSlug}"]`);
+          if (recipeCard) {
+            // Scroll card to top of viewport with 20px offset
+            recipeCard.scrollIntoView(true); // Align to top
+            
+            // Then adjust by 20px downward for spacing
+            const headerHeight = 80; // Approximate header height
+            window.scrollBy(0, -headerHeight + 20);
+            
+            // Wait a frame and verify
+            await new Promise(r => requestAnimationFrame(r));
+            
+            // Get final position and check if card is properly positioned
+            const rect = recipeCard.getBoundingClientRect();
+            const targetViewportY = 140; // Position card roughly 140px down from top (below header)
+            
+            if (Math.abs(rect.top - targetViewportY) > 10) {
+              // Not quite right, fine-tune
+              const adjustment = rect.top - targetViewportY;
+              window.scrollBy(0, adjustment);
+            }
+            
+            return;
+          }
+        }
+        
+        // Fallback to saved Y position if card not found
+        if (fallbackY !== undefined && fallbackY > 0) {
+          window.scrollTo({ top: fallbackY, left: 0, behavior: 'instant' });
+          
+          // Additional verification after a frame
+          await new Promise(r => requestAnimationFrame(r));
+          
+          if (Math.abs(window.scrollY - fallbackY) > 5) {
+            window.scrollTo({ top: fallbackY, left: 0, behavior: 'instant' });
+          }
+        }
+      };
+
+      // Listen for navigation from recipe back to recipes
+      document.addEventListener('astro:before-preparation', (e: any) => {
+        const fromRecipe = window.location.pathname.startsWith('/recipes/') && window.location.pathname !== '/recipes';
+        
+        if (fromRecipe) {
+          // Disable transitions
+          document.documentElement.style.viewTransitionName = 'none !important';
+          document.body.style.viewTransitionName = 'none !important';
+          
+          // Mark that we need to restore scroll
+          const visibleCard = sessionStorage.getItem('recipesVisibleCard');
+          const scrollPos = sessionStorage.getItem('recipesScrollPosition');
+          if (visibleCard) {
+            sessionStorage.setItem('recipesRestoreCard', visibleCard);
+          }
+          if (scrollPos) {
+            sessionStorage.setItem('recipesRestoreY', scrollPos);
+          }
+        }
+      });
+
+      // Restore after page swap
+      document.addEventListener('astro:after-swap', async () => {
+        document.documentElement.style.viewTransitionName = '';
+        document.body.style.viewTransitionName = '';
+        
+        if (window.location.pathname === '/recipes') {
+          const cardSlug = sessionStorage.getItem('recipesRestoreCard');
+          const scrollY = sessionStorage.getItem('recipesRestoreY');
+          
+          if (cardSlug || scrollY) {
+            const fallbackY = scrollY ? parseInt(scrollY) : undefined;
+            await restoreScrollPosition(cardSlug, fallbackY);
+            sessionStorage.removeItem('recipesRestoreCard');
+            sessionStorage.removeItem('recipesRestoreY');
+          }
+        }
+      });
+
+      // Final restoration on page load
+      document.addEventListener('astro:page-load', async () => {
+        if (window.location.pathname === '/recipes') {
+          const cardSlug = sessionStorage.getItem('recipesRestoreCard');
+          const scrollY = sessionStorage.getItem('recipesRestoreY');
+          
+          if (cardSlug || scrollY) {
+            const fallbackY = scrollY ? parseInt(scrollY) : undefined;
+            await restoreScrollPosition(cardSlug, fallbackY);
+            sessionStorage.removeItem('recipesRestoreCard');
+            sessionStorage.removeItem('recipesRestoreY');
+          }
+        }
+      });
+
+      // Fallback on window load
+      window.addEventListener('load', async () => {
+        if (window.location.pathname === '/recipes') {
+          const cardSlug = sessionStorage.getItem('recipesRestoreCard');
+          const scrollY = sessionStorage.getItem('recipesRestoreY');
+          
+          if (cardSlug || scrollY) {
+            const fallbackY = scrollY ? parseInt(scrollY) : undefined;
+            await restoreScrollPosition(cardSlug, fallbackY);
+            sessionStorage.removeItem('recipesRestoreCard');
+            sessionStorage.removeItem('recipesRestoreY');
+          }
+        }
+      });
+    </script>
     <title>{title}</title>
     <style is:global>
       html {
@@ -82,10 +293,21 @@ if (resolveAuth) {
         outline: none !important;
       }
 
-      /* Snappier Transitions */
+      /* Completely disable view transitions - instant page changes */
       ::view-transition-old(root),
       ::view-transition-new(root) {
-        animation-duration: 200ms !important;
+        animation: none !important;
+        opacity: 1 !important;
+        transition: none !important;
+      }
+      
+      ::view-transition {
+        animation: none !important;
+      }
+      
+      /* Prevent transition animations from happening at all */
+      html[style*="viewTransitionName: none"] {
+        view-transition-name: none !important;
       }
 
       /* Custom minimalist scrollbar */
@@ -161,6 +383,8 @@ if (resolveAuth) {
   <body class={`bg-white min-h-screen font-sans antialiased text-gray-900 ${currentPath.startsWith('/recipes') ? 'is-recipe-page' : ''}`}>
     <!-- Progress Bar -->
     <div id="nav-progress" class="fixed top-0 left-0 w-0 h-[2px] bg-gray-900 z-[100] transition-all opacity-0 pointer-events-none"></div>
+
+    {currentPath === '/' && <PWAInstallBanner client:load />}
 
     <header class="bg-white border-b border-gray-100">
       <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -374,8 +598,8 @@ if (resolveAuth) {
     <style is:global>
       .shopping-list-widget-container {
         position: fixed;
-        bottom: 0.5rem;
-        right: 0.5rem;
+        bottom: 1.25rem;
+        right: 1.25rem;
         z-index: 2147483647 !important;
         pointer-events: auto !important;
         isolation: isolate !important;
@@ -394,8 +618,8 @@ if (resolveAuth) {
       
       @media (min-width: 768px) {
         .shopping-list-widget-container {
-          bottom: 1rem;
-          right: 1rem;
+          bottom: 2rem;
+          right: 2rem;
         }
       }
     </style>
