@@ -67,7 +67,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 ---
 
 <Layout title="Recipes" description="A collection of our favorite family recipes." user={user}>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4 sm:pb-10">
     {recipes.length > 0 ? (
       <div class="space-y-6">
         {/* Search & Filters */}
@@ -434,10 +434,6 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
               } catch (e) {}
             }
           }
-        }
-
-        if (hasHydrated && typeof (window as any).showPendingBanner === 'function') {
-          (window as any).showPendingBanner();
         }
 
         // Re-run grid update to apply current filters to new cards
