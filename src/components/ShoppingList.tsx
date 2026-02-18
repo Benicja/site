@@ -45,6 +45,8 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
 
   useEffect(() => {
     if (open) {
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
       setItems(loadList(STORAGE_KEY));
       const loaded = loadList(UTILITY_STORAGE_KEY);
       
@@ -70,7 +72,15 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
       } else {
         setUtilityItems(loaded);
       }
+    } else {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
     }
+
+    return () => {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
   }, [open]);
 
   useEffect(() => {
@@ -212,7 +222,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
       onClick={onClose}
     >
       <div 
-        className="w-full max-w-md bg-white rounded-t-2xl md:rounded-2xl shadow-2xl px-4 py-3 relative animate-fadeInUp flex flex-col max-h-[90vh]"
+        className="w-full max-w-md bg-white rounded-t-2xl md:rounded-2xl shadow-2xl px-4 py-3 relative animate-fadeInUp flex flex-col max-h-[82vh] md:max-h-[90vh]"
         onClick={e => e.stopPropagation()}
       >
         <button
