@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getGoogleClient, isEmailApproved, createUserSession, SESSION_COOKIE } from '../../lib/auth';
+import { getGoogleClient, isEmailApproved, createUserSession, getUserFromSession, SESSION_COOKIE } from '../../lib/auth';
 import { OAuth2RequestError } from 'arctic';
 
 export const prerender = false;
@@ -10,7 +10,22 @@ export const GET: APIRoute = async ({ url, cookies, redirect }) => {
   const storedState = cookies.get('oauth_state')?.value;
   const storedVerifier = cookies.get('oauth_code_verifier')?.value;
   const isLinkingPhotos = cookies.get('link_photos_mode')?.value === 'true';
-  
+
+  // PRAGMATIC CHECK: If we already have a session, maybe this is a double-tap/refresh
+  // This happens in some browsers (like Chrome) when they pre-fetch or double-request URLs
+  const existingSessionId = cookies.get(SESSION_COOKIE)?.value;
+  if (existingSessionId && !isLinkingPhotos) {
+    const user = await getUserFromSession(existingSessionId);
+    if (user) {
+      console.log('Session already exists, skipping OAuth exchange and redirecting');
+      const targetRedirect = cookies.get('auth_redirect')?.value || '/gallery';
+      cookies.delete('oauth_state', { path: '/' });
+      cookies.delete('oauth_code_verifier', { path: '/' });
+      cookies.delete('auth_redirect', { path: '/' });
+      return redirect(targetRedirect);
+    }
+  }
+
   // Validate request integrity
   if (!code || !state || !storedState || !storedVerifier || state !== storedState) {
     console.error('Auth Validation Failed:', { 
@@ -125,9 +140,19 @@ export const GET: APIRoute = async ({ url, cookies, redirect }) => {
     
     if (error instanceof OAuth2RequestError) {
       console.error('OAuth2 Error:', error.message, error.description);
-      return new Response(`Invalid authorization code: ${error.message}`, { status: 400 });
+      
+      // If we see "invalid_grant", it's extremely likely the code was already redeemed 
+      // by a concurrent request (especially common in Chrome with pre-fetching/pre-rendering)
+      // or a manual refresh. If we redirect to /gallery, the user will either see 
+      // the success (if a session was created) or be prompted to login again naturally.
+      if (error.message === 'invalid_grant' || error.message.includes('authorization code')) {
+        console.log('Detected invalid_grant (likely double-exchange), attempting redirect to gallery');
+        return redirect('/gallery');
+      }
+
+      return new Response(`Invalid authorization code: ${error.message}. Please try logging in again.`, { status: 400 });
     }
     
-    return new Response(`Internal server error: ${errorMessage}`, { status: 500 });
+    return new Response(`Internal server error: ${errorMessage}. Please try refreshing or logging in again.`, { status: 500 });
   }
 };
