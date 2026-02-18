@@ -1,11 +1,11 @@
 ---
 title: "HELLO WORLD"
 description: "HELLO WORLDHELLO WORLD"
+featured_image: "/images/recipes/hello-world-1771436025361-91b5aa0a.jpg"
 prep_time: 1
 cook_time: 11
 servings: 111
 category: "Breakfast"
-publishDate: 2026-02-18
 
 ingredients:
   - item: "ASDF"
@@ -13,5 +13,7 @@ ingredients:
 
 instructions:
   - step: "ASDFASDF"
+
+publishDate: 2026-02-18
 ---
 
