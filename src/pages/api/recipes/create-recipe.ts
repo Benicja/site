@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { isUserAdmin, SESSION_COOKIE } from '../../../lib/auth';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { commitToGitHub, readFromGitHub } from '../../../lib/github';
+import { buildRecipeFrontmatter, validateRecipeYAML } from '../../../lib/recipe-utils';
 import path from 'path';
 
 export const prerender = false;
@@ -15,12 +16,6 @@ const generateSlug = (title: string): string => {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '');
-};
-
-// Helper function to escape YAML strings
-const escapeYamlString = (str: string): string => {
-  if (!str) return '""';
-  return `"${str.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`;
 };
 
 export const POST: APIRoute = async ({ request, cookies }) => {
@@ -65,48 +60,26 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       // Not found, continue
     }
 
-    // Build frontmatter
-    const frontmatterLines: string[] = [];
-    frontmatterLines.push(`title: ${escapeYamlString(title)}`);
-    frontmatterLines.push(`description: ${escapeYamlString(description || '')}`);
-    if (featured_image) {
-      frontmatterLines.push(`featured_image: ${escapeYamlString(featured_image)}`);
-    }
-    frontmatterLines.push(`prep_time: ${parseInt(prep_time) || 0}`);
-    frontmatterLines.push(`cook_time: ${parseInt(cook_time) || 0}`);
-    if (servings) {
-      frontmatterLines.push(`servings: ${parseInt(servings) || 0}`);
-    }
-    frontmatterLines.push(`category: ${escapeYamlString(category || 'Other')}`);
-    frontmatterLines.push(`publishDate: ${new Date().toISOString().split('T')[0]}`);
+    // Build frontmatter using proper YAML library
+    const content = buildRecipeFrontmatter({
+      title,
+      description: description || '',
+      featured_image: featured_image || undefined,
+      prep_time: parseInt(prep_time) || 0,
+      cook_time: parseInt(cook_time) || 0,
+      servings: servings ? parseInt(servings) : undefined,
+      category: category || 'Other',
+      ingredients: ingredients || [],
+      instructions: instructions || [],
+      publishDate: new Date().toISOString().split('T')[0]
+    });
 
-    // Add ingredients if provided
-    if (ingredients && ingredients.length > 0) {
-      frontmatterLines.push('');
-      frontmatterLines.push('ingredients:');
-      for (const item of ingredients) {
-        frontmatterLines.push(`  - item: ${escapeYamlString(item.item || '')}`);
-        frontmatterLines.push(`    amount: ${escapeYamlString(item.amount || '')}`);
-      }
-    } else {
-      frontmatterLines.push('');
-      frontmatterLines.push('ingredients: []');
+    // Validate generated YAML before committing
+    const validationError = validateRecipeYAML(content);
+    if (validationError) {
+      console.error('Recipe validation failed:', validationError);
+      return new Response(JSON.stringify({ error: `Invalid recipe format: ${validationError}` }), { status: 400 });
     }
-
-    // Add instructions if provided
-    if (instructions && instructions.length > 0) {
-      frontmatterLines.push('');
-      frontmatterLines.push('instructions:');
-      for (const ins of instructions) {
-        frontmatterLines.push(`  - step: ${escapeYamlString(ins.step || '')}`);
-      }
-    } else {
-      frontmatterLines.push('');
-      frontmatterLines.push('instructions: []');
-    }
-
-    // Create the markdown file content
-    const content = `---\n${frontmatterLines.join('\n')}\n---\n\n`;
 
     try {
       await commitToGitHub(recipePath, content, `Create recipe: ${title}`);

@@ -1,37 +1,10 @@
 import type { APIRoute } from 'astro';
 import { isUserAdmin, SESSION_COOKIE } from '../../../lib/auth';
 import { readFromGitHub, commitToGitHub } from '../../../lib/github';
+import { buildRecipeFrontmatter, validateRecipeYAML } from '../../../lib/recipe-utils';
 import path from 'path';
 
 export const prerender = false;
-
-// Helper function to escape quotes in YAML strings
-const escapeYamlString = (str: string): string => {
-  if (!str) return '""';
-  return `"${str.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`;
-};
-
-// Helper function to serialize ingredients/instructions arrays to YAML format
-const serializeArray = (fieldName: string, items: any[]): string[] => {
-  if (!items || items.length === 0) {
-    return [];
-  }
-
-  const lines: string[] = [fieldName + ':'];
-
-  for (const item of items) {
-    if (fieldName === 'ingredients') {
-      // Format: item, amount
-      lines.push(`  - item: ${escapeYamlString(item.item || '')}`);
-      lines.push(`    amount: ${escapeYamlString(item.amount || '')}`);
-    } else if (fieldName === 'instructions') {
-      // Format: step
-      lines.push(`  - step: ${escapeYamlString(item.step || '')}`);
-    }
-  }
-
-  return lines;
-};
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   const sessionId = cookies.get(SESSION_COOKIE)?.value;
@@ -93,56 +66,46 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         return new Response(JSON.stringify({ error: 'Invalid recipe format: missing closing delimiter' }), { status: 400 });
     }
 
-    const originalFrontmatterLines = lines.slice(1, frontmatterEndLine);
+const originalFrontmatterLines = lines.slice(1, frontmatterEndLine);
     const bodyContent = lines.slice(frontmatterEndLine + 1).join('\n').trim();
 
-    // Build new frontmatter - start with fields we're editing
-    const newFrontmatterLines: string[] = [];
-    newFrontmatterLines.push(`title: ${escapeYamlString(title)}`);
-    newFrontmatterLines.push(`description: ${escapeYamlString(description)}`);
-    if (featured_image) {
-        newFrontmatterLines.push(`featured_image: ${escapeYamlString(featured_image)}`);
-    }
-    newFrontmatterLines.push(`prep_time: ${prep_time}`);
-    newFrontmatterLines.push(`cook_time: ${cook_time}`);
-    if (servings) {
-        newFrontmatterLines.push(`servings: ${servings}`);
-    }
-    newFrontmatterLines.push(`category: ${escapeYamlString(category)}`);
-
-
-    // Add ingredients if provided
-    if (ingredients && ingredients.length > 0) {
-        newFrontmatterLines.push('');
-        newFrontmatterLines.push(...serializeArray('ingredients', ingredients));
+    // Extract publishDate and draft from original frontmatter
+    let publishDate: string | undefined;
+    let draft: boolean | undefined;
+    
+    for (const line of originalFrontmatterLines) {
+      if (line.startsWith('publishDate:')) {
+        publishDate = line.replace('publishDate:', '').trim().replace(/^['"]|['"]$/g, '');
+      }
+      if (line.startsWith('draft:')) {
+        draft = line.includes('true');
+      }
     }
 
-    // Add instructions if provided
-    if (instructions && instructions.length > 0) {
-        newFrontmatterLines.push('');
-        newFrontmatterLines.push(...serializeArray('instructions', instructions));
+    // Build new frontmatter using YAML library
+    const content = buildRecipeFrontmatter({
+      title,
+      description,
+      featured_image: featured_image || undefined,
+      prep_time: parseInt(prep_time) || 0,
+      cook_time: parseInt(cook_time) || 0,
+      servings: servings ? parseInt(servings) : undefined,
+      category,
+      ingredients: ingredients || [],
+      instructions: instructions || [],
+      publishDate: publishDate || new Date().toISOString().split('T')[0],
+      draft: draft
+    });
+
+    // Reconstruct with body content
+    const newContent = content + bodyContent;
+
+    // Validate generated YAML before committing
+    const validationError = validateRecipeYAML(newContent);
+    if (validationError) {
+      console.error('Recipe validation failed:', validationError);
+      return new Response(JSON.stringify({ error: `Invalid recipe format: ${validationError}` }), { status: 400 });
     }
-
-    // Preserve fields we're not editing (publishDate, draft)
-    const fieldsToPreserve = ['publishDate', 'draft'];
-
-    for (const fieldName of fieldsToPreserve) {
-        // Find where this field starts in the original frontmatter
-        let fieldStartIdx = -1;
-        for (let i = 0; i < originalFrontmatterLines.length; i++) {
-            if (originalFrontmatterLines[i].startsWith(fieldName + ':')) {
-                fieldStartIdx = i;
-                break;
-            }
-        }
-
-        if (fieldStartIdx !== -1) {
-            newFrontmatterLines.push('');
-            newFrontmatterLines.push(originalFrontmatterLines[fieldStartIdx]);
-        }
-    }
-
-    const newContent = `---\n${newFrontmatterLines.join('\n')}\n---\n\n${bodyContent}`;
 
     try {
       await commitToGitHub(recipePath, newContent, `Update recipe: ${title}`);
