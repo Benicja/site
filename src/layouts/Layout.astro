@@ -359,6 +359,51 @@ if (resolveAuth) {
           }, 300);
         }
       });
+
+      // Recipe Image Cache Helper (IndexedDB)
+      window.recipeImageCache = {
+        DB_NAME: 'recipe-image-cache',
+        STORE_NAME: 'images',
+        async getDB() {
+          return new Promise((resolve, reject) => {
+            const request = indexedDB.open(this.DB_NAME, 1);
+            request.onupgradeneeded = () => {
+              if (!request.result.objectStoreNames.contains(this.STORE_NAME)) {
+                request.result.createObjectStore(this.STORE_NAME);
+              }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+        },
+        async save(url, blob) {
+          if (!url || !blob) return;
+          try {
+            const db = await this.getDB();
+            const tx = db.transaction(this.STORE_NAME, 'readwrite');
+            tx.objectStore(this.STORE_NAME).put(blob, url);
+          } catch(e) { console.warn('Cache save failed', e); }
+        },
+        async get(url) {
+          if (!url) return null;
+          try {
+            const db = await this.getDB();
+            return new Promise((resolve) => {
+              const tx = db.transaction(this.STORE_NAME, 'readonly');
+              const st = tx.objectStore(this.STORE_NAME);
+              const req = st.get(url);
+              req.onsuccess = () => {
+                if (req.result instanceof Blob) {
+                  resolve(URL.createObjectURL(req.result));
+                } else {
+                  resolve(null);
+                }
+              };
+              req.onerror = () => resolve(null);
+            });
+          } catch(e) { return null; }
+        }
+      };
     </script>
   </head>
   <body class={`${(currentPath.startsWith('/recipes')) || (currentPath.startsWith('/gallery')) || (currentPath.startsWith('/portal')) ? 'bg-gray-100' : 'bg-white'} min-h-screen font-sans text-gray-900 ${currentPath.startsWith('/recipes') ? 'is-recipe-page' : ''}`}>

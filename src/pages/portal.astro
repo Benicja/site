@@ -483,7 +483,104 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
   <script is:inline>
     let draggedElement = null;
 
+    function hydrateRecipeRowElement(el, slug, data) {
+      if (!el || !data) return;
+      el.dataset.recipeSlug = slug;
+      
+      const titleEl = el.querySelector('h3');
+      if (titleEl) titleEl.textContent = data.title;
+      
+      const metaEl = el.querySelector('p.text-gray-400');
+      const time = Number(data.prep_time || 0) + Number(data.cook_time || 0);
+      if (metaEl) {
+        metaEl.textContent = `${data.category} • ${time} mins`;
+      }
+      
+      const imgContainer = el.querySelector('.w-12.h-12');
+      if (imgContainer) {
+        if (data.featured_image) {
+          let img = imgContainer.querySelector('img');
+          if (!img) {
+            imgContainer.innerHTML = '';
+            img = document.createElement('img');
+            img.className = 'w-full h-full object-cover';
+            imgContainer.appendChild(img);
+          }
+          img.src = data.featured_image;
+          
+          if (window.recipeImageCache) {
+            window.recipeImageCache.get(data.featured_image).then(cachedUrl => {
+              if (cachedUrl) img.src = cachedUrl;
+            });
+          }
+        } else {
+          imgContainer.innerHTML = '<span class="text-2xl">🍳</span>';
+        }
+      }
+      
+      // Update buttons
+      el.querySelectorAll('[data-recipe-slug]').forEach(btn => {
+        btn.dataset.recipeSlug = slug;
+        btn._hasHandler = false;
+      });
+
+      el.classList.add('is-hydrated');
+      el.style.borderLeft = '4px solid #10b981';
+      // If it's a completely new row, give it a subtle green background
+      if (el.dataset.isNew) el.style.backgroundColor = '#f0fdf4';
+    }
+
+    function hydrateRecipeList() {
+      const list = document.getElementById('recipes-list');
+      if (!list) return;
+
+      const items = Array.from(list.querySelectorAll('.recipe-item'));
+      const existingSlugs = new Set(items.map(i => i.dataset.recipeSlug));
+
+      // 1. Update existing
+      items.forEach(item => {
+        const slug = item.dataset.recipeSlug;
+        const cacheKey = 'recipe_pending_v1_' + slug;
+        const raw = localStorage.getItem(cacheKey);
+        if (raw) {
+          try {
+            const { data } = JSON.parse(raw);
+            hydrateRecipeRowElement(item, slug, data);
+          } catch(e) {}
+        }
+      });
+
+      // 2. Inject new
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('recipe_pending_v1_')) {
+          const slug = key.replace('recipe_pending_v1_', '');
+          if (!existingSlugs.has(slug)) {
+            try {
+              const raw = localStorage.getItem(key);
+              const { timestamp, data } = JSON.parse(raw);
+              // Ignore if older than 10 mins
+              if (Date.now() - timestamp > 10 * 60 * 1000) continue;
+
+              const template = items[0];
+              if (template) {
+                const newItem = template.cloneNode(true);
+                newItem.dataset.isNew = "true";
+                list.prepend(newItem);
+                // Clear state for new item listeners
+                newItem._dragInitialized = false;
+                hydrateRecipeRowElement(newItem, slug, data);
+              }
+            } catch(e) {}
+          }
+        }
+      }
+    }
+
     function initializePortal() {
+      // Hydrate recipes from cache before binding any listeners
+      hydrateRecipeList();
+
       // Initialize toggle buttons
       const toggleButtons = document.querySelectorAll('.toggle-content-btn');
       
@@ -609,14 +706,29 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
           const slug = btn.dataset.recipeSlug;
           if (!slug) return;
 
+          let recipe = null;
           try {
             const response = await fetch(`/api/recipes/get-recipe?slug=${encodeURIComponent(slug)}`);
-            const recipe = await response.json();
-
-            if (!response.ok) {
-              throw new Error(recipe.error || 'Failed to load recipe');
+            if (response.ok) {
+              recipe = await response.json();
             }
+          } catch (e) {}
 
+          // Fallback to local cache for ghost recipes
+          if (!recipe) {
+            const cacheKey = 'recipe_pending_v1_' + slug;
+            const raw = localStorage.getItem(cacheKey);
+            if (raw) {
+              try { recipe = JSON.parse(raw).data; } catch(e) {}
+            }
+          }
+
+          if (!recipe) {
+            alert('Recipe details not found. It might still be processing.');
+            return;
+          }
+
+          try {
             // Populate form fields
             document.getElementById('edit-recipe-slug').value = slug;
             document.getElementById('edit-recipe-title').value = recipe.title;
@@ -634,6 +746,13 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
             if (recipe.featured_image) {
               imageUrlInput.value = recipe.featured_image;
               imagePreview.src = recipe.featured_image;
+              
+              if (window.recipeImageCache) {
+                window.recipeImageCache.get(recipe.featured_image).then(cachedUrl => {
+                  if (cachedUrl) imagePreview.src = cachedUrl;
+                });
+              }
+
               imagePreview.classList.remove('hidden');
               imagePreviewPlaceholder.classList.add('hidden');
             } else {
@@ -854,6 +973,11 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
                 }
 
                 featuredImageUrl = uploadResult.url;
+                
+                // Cache the image locally for immediate showing before build
+                if (window.recipeImageCache) {
+                  window.recipeImageCache.save(featuredImageUrl, editForm._uploadedImageFile);
+                }
 
                 // Update recipe with the image URL
                 const updateData = {

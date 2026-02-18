@@ -366,6 +366,14 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         if (img && data.featured_image) {
           (img as HTMLImageElement).src = data.featured_image;
           (img as HTMLImageElement).alt = data.title;
+          
+          // Try loading from IndexedDB if it was recently added
+          if (window.recipeImageCache) {
+            window.recipeImageCache.get(data.featured_image).then(cachedUrl => {
+              if (cachedUrl) (img as HTMLImageElement).src = cachedUrl;
+            });
+          }
+
           img.classList.remove('hidden');
           if (fallback) fallback.classList.add('hidden');
         }
