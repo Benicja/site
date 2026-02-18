@@ -176,8 +176,8 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 
   <script>
     function initSearch() {
-      const searchInput = document.getElementById('recipe-search');
-      const recipeItems = document.querySelectorAll('.recipe-item');
+      const searchInput = document.getElementById('recipe-search') as HTMLInputElement | null;
+      const recipeItems = document.querySelectorAll('.recipe-item') as NodeListOf<HTMLElement>;
       const recipesGrid = document.getElementById('recipes-grid');
       const noResults = document.getElementById('no-results');
       const filterBtns = document.querySelectorAll('.filter-btn');
@@ -201,10 +201,10 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
       revealItems();
 
 
-      let activeCategory = null;
+      let activeCategory: string | null = null;
       let showHeartedOnly = false;
 
-      const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
       function updateGrid() {
         if (!searchInput || !noResults || !recipesGrid) return;
@@ -245,7 +245,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         }
       }
 
-      function handleFilterClick(btn) {
+      function handleFilterClick(btn: HTMLElement) {
         const type = btn.getAttribute('data-filter');
         const value = btn.getAttribute('data-value');
         const wasActive = btn.getAttribute('data-active') === 'true';
@@ -289,8 +289,8 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 
       // Handle Category/Hearted Buttons (delegated)
       filterGroup?.addEventListener('click', (event) => {
-        const rawTarget = event.target;
-        const btn = rawTarget?.closest('.filter-btn');
+        const rawTarget = event.target as HTMLElement | null;
+        const btn = rawTarget?.closest('.filter-btn') as HTMLElement | null;
         if (!btn) return;
         handleFilterClick(btn);
       });
@@ -301,7 +301,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         btn.setAttribute('data-inited', 'true');
         btn.addEventListener('click', (event) => {
           event.preventDefault();
-          handleFilterClick(btn);
+          handleFilterClick(btn as HTMLElement);
         });
       });
 
@@ -315,10 +315,10 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
       const initialCat = urlParams.get('category');
       if (initialCat) {
         const targetBtn = Array.from(filterBtns).find(b => b.getAttribute('data-value') === initialCat);
-        if (targetBtn) targetBtn.click();
+        if (targetBtn) (targetBtn as HTMLElement).click();
       }
 
-      function hydrateCardElement(item, slug, data) {
+      function hydrateCardElement(item: HTMLElement, slug: string, data: any) {
         const card = item.querySelector('[data-recipe-slug]');
         if (card) card.setAttribute('data-recipe-slug', slug);
         
@@ -354,22 +354,24 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 
         // Update category tags
         const tags = item.querySelectorAll('.category-tag');
-        tags.forEach(tag => {
-          tag.textContent = data.category;
-          tag.setAttribute('data-category', data.category);
-          tag.setAttribute('href', `/recipes?category=${data.category.toLowerCase()}`);
+        tags.forEach((tag: Element) => {
+          const t = tag as HTMLElement;
+          t.textContent = data.category;
+          t.setAttribute('data-category', data.category);
+          t.setAttribute('href', `/recipes?category=${data.category.toLowerCase()}`);
         });
 
         // Update image
-        const img = item.querySelector('.hydrate-image') || item.querySelector('img');
+        const img = (item.querySelector('.hydrate-image') || item.querySelector('img')) as HTMLImageElement | null;
         const fallback = item.querySelector('.hero-fallback');
         if (img && data.featured_image) {
           img.src = data.featured_image;
           img.alt = data.title;
           
           // Try loading from IndexedDB if it was recently added
-          if ( window.recipeImageCache ) {
-            window.recipeImageCache.get(data.featured_image).then((cachedUrl) => {
+          const win = window as any;
+          if ( win.recipeImageCache ) {
+            win.recipeImageCache.get(data.featured_image).then((cachedUrl: string | null) => {
               if (cachedUrl) img.src = cachedUrl;
             });
           }
@@ -413,7 +415,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
               return;
             }
 
-            hydrateCardElement(item, slug, data);
+            hydrateCardElement(item as HTMLElement, slug, data);
           } catch (e) {}
         });
 
@@ -431,7 +433,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
                 if (Date.now() - timestamp < 10 * 60 * 1000) {
                   const template = currentItems[0];
                   if (template && grid) {
-                    const newItem = template.cloneNode(true);
+                    const newItem = template.cloneNode(true) as HTMLElement;
                     grid.prepend(newItem);
                     hydrateCardElement(newItem, slug, data);
                   }
