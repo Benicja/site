@@ -206,7 +206,7 @@ if (resolveAuth) {
       };
 
       // Listen for navigation from recipe back to recipes
-      document.addEventListener('astro:before-preparation', (e) => {
+      document.addEventListener('astro:before-preparation', () => {
         const fromRecipe = window.location.pathname.startsWith('/recipes/') && window.location.pathname !== '/recipes';
         
         if (fromRecipe) {

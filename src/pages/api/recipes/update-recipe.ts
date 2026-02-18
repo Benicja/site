@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
 import { isUserAdmin, SESSION_COOKIE } from '../../../lib/auth';
 import { readFromGitHub, commitToGitHub } from '../../../lib/github';
-import { promises as fs } from 'fs';
 import path from 'path';
 
 export const prerender = false;

@@ -2,7 +2,7 @@
 export const prerender = false;
 
 import Layout from '../../layouts/Layout.astro';
-import { SESSION_COOKIE, getApprovedUser, getUserFromSession, getSiteConfig } from '../../lib/auth';
+import { SESSION_COOKIE, getApprovedUser, getUserFromSession } from '../../lib/auth';
 import { getAlbums, type Album, getAlbumDate, getDisplayDate, getDisplayTitle } from '../../lib/gallery';
 import { supabaseAdmin } from '../../lib/supabase';
 
@@ -10,7 +10,6 @@ import { supabaseAdmin } from '../../lib/supabase';
 let user = null;
 let isAdmin = false;
 let isApproved = false;
-let siteConfig = null;
 let albums: Album[] = [];
 let error = '';
 let accessRequestStatus: 'pending' | 'denied' | null = null;
@@ -43,8 +42,6 @@ try {
     }
   }
 
-  siteConfig = await getSiteConfig();
-  
   // Fetch albums from Supabase
   albums = user && (isApproved || isAdmin) ? await getAlbums() : [];
 } catch (e) {

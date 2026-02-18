@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   try {
     // Check if display_order column exists by trying to fetch with it
-    const { data: testData, error: testError } = await supabaseAdmin
+    const { error: testError } = await supabaseAdmin
       .from('gallery_albums')
       .select('display_order')
       .limit(1);

@@ -1,8 +1,7 @@
 import type { APIRoute } from 'astro';
 import { isUserAdmin, SESSION_COOKIE } from '../../../lib/auth';
 import { supabaseAdmin } from '../../../lib/supabase';
-import { commitToGitHub } from '../../../lib/github';
-import { promises as fs } from 'fs';
+import { commitToGitHub, readFromGitHub } from '../../../lib/github';
 import path from 'path';
 
 export const prerender = false;

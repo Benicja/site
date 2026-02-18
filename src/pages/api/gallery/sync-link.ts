@@ -156,7 +156,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const albumUrlId = urlParts.pop()?.split('?')[0] || Date.now().toString();
 
     // Check if album already exists to preserve its display order
-    const { data: existingAlbum, error: fetchError } = await supabaseAdmin
+    const { data: existingAlbum } = await supabaseAdmin
       .from('gallery_albums')
       .select('display_order')
       .eq('google_album_id', albumUrlId)

@@ -1,10 +1,10 @@
 ---
 
 export const prerender = false;
-import { getCollection, getEntry } from 'astro:content';
+import { getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { SESSION_COOKIE, getUserFromSession } from '../../lib/auth';
-import { getRecipeHearts, getUserHearts } from '../../lib/hearts';
+import { getRecipeHearts } from '../../lib/hearts';
 import AddAllToShoppingListButton from '../../components/AddAllToShoppingListButton.astro';
 
 const { slug } = Astro.params;
@@ -23,10 +23,6 @@ const globalHearts = await getRecipeHearts();
 const heartCount = (globalHearts as any)[recipe.slug] || 0;
 
 const data: typeof recipe.data & { servings?: number } = recipe.data;
-const { Content } = await recipe.render();
-
-// Calculate total time
-const totalTime = data.prep_time + data.cook_time;
 ---
 
 <Layout title={data.title} description={data.description} user={user}>

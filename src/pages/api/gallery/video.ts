@@ -28,7 +28,6 @@ export const GET: APIRoute = async ({ request, url }) => {
     const contentLength = response.headers.get('content-length');
     const contentRange = response.headers.get('content-range');
     const acceptRanges = response.headers.get('accept-ranges');
-    const effectiveUrl = response.url;
 
     if (!response.ok && response.status !== 206) {
       return new Response('Failed to fetch video', { status: response.status });

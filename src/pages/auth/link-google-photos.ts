@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getGoogleClient, generateState, generateCodeVerifier, SESSION_COOKIE, isUserAdmin } from '../../lib/auth';
+import { generateState, generateCodeVerifier, SESSION_COOKIE, isUserAdmin } from '../../lib/auth';
 
 export const prerender = false;
 

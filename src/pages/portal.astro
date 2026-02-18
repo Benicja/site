@@ -652,7 +652,7 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
             if (ingredientsList) {
               ingredientsList.innerHTML = '';
               const ingredients = recipe.ingredients || [];
-              ingredients.forEach((ing, idx) => {
+              ingredients.forEach((ing) => {
                 addIngredientField(ing.item, ing.amount);
               });
             }
