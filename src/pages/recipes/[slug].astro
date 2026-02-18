@@ -120,7 +120,7 @@ const pageDesc = isGhost ? 'Pending deploy' : data.description;
     </div>
   </div>
 
-  <script define:vars={{ slug }}>
+  <script is:inline define:vars={{ slug }}>
     // Hydrate from localStorage for optimistic updates
     document.addEventListener('astro:page-load', () => {
       const cacheKey = 'recipe_pending_v1_' + slug;

@@ -392,6 +392,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
           const card = item.querySelector('[data-recipe-slug]');
           if (!card) return;
           const slug = card.getAttribute('data-recipe-slug');
+          if (!slug) return;
           existingSlugs.add(slug);
 
           const cacheKey = 'recipe_pending_v1_' + slug;
@@ -417,8 +418,12 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
             const slug = key.replace('recipe_pending_v1_', '');
             if (!existingSlugs.has(slug)) {
               try {
-                const { timestamp, data } = JSON.parse(localStorage.getItem(key)!);
+                const itemRaw = localStorage.getItem(key);
+                if (!itemRaw) continue;
+                
+                const { timestamp, data } = JSON.parse(itemRaw);
                 if (Date.now() - timestamp < 10 * 60 * 1000) {
+```,oldString:
                   const template = currentItems[0];
                   if (template && grid) {
                     const newItem = template.cloneNode(true) as HTMLElement;
