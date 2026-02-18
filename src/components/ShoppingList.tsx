@@ -226,7 +226,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
         <div className="flex p-1 bg-gray-100 rounded-xl mb-2 mr-8">
           <button
             onClick={() => setActiveTab('shopping')}
-            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+            className={`flex-1 py-2 md:py-1.5 text-sm md:text-xs font-bold rounded-lg transition-all ${
               activeTab === 'shopping' 
                 ? 'bg-white text-gray-900 shadow-sm' 
                 : 'text-gray-500 hover:text-gray-700'
@@ -236,7 +236,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
           </button>
           <button
             onClick={() => setActiveTab('utility')}
-            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+            className={`flex-1 py-2 md:py-1.5 text-sm md:text-xs font-bold rounded-lg transition-all ${
               activeTab === 'utility' 
                 ? 'bg-white text-gray-900 shadow-sm' 
                 : 'text-gray-500 hover:text-gray-700'
@@ -295,21 +295,21 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                       }
 
                       return (
-                        <li key={item.id} className="flex items-center gap-3 p-1 group hover:bg-gray-50 rounded-lg transition-colors">
+                        <li key={item.id} className="flex items-center gap-4 p-1.5 group hover:bg-gray-50 rounded-lg transition-colors">
                           <div className="relative flex items-center justify-center">
                             <input
                               type="checkbox"
                               checked={item.checked}
                               onChange={() => toggleItem(item.id)}
-                              className="peer appearance-none w-[18px] h-[18px] border-2 border-gray-200 rounded-[3px] checked:bg-gray-900 checked:border-gray-900 transition-all cursor-pointer"
+                              className="peer appearance-none w-5 h-5 border-2 border-gray-200 rounded-[4px] checked:bg-gray-900 checked:border-gray-900 transition-all cursor-pointer"
                             />
-                            <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                            <svg className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                           </div>
                           {editingId === item.id ? (
                             <input
-                              className="flex-1 text-[13px] font-medium bg-white border border-gray-200 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-gray-900/50"
+                              className="flex-1 text-base md:text-[13px] font-medium bg-white border border-gray-200 rounded px-1 group-hover:px-2 py-1 outline-none focus:ring-1 focus:ring-gray-900/50 transition-all font-sans"
                               value={editValue}
                               onChange={e => setEditValue(e.target.value)}
                               onBlur={() => saveEdit(item.id)}
@@ -323,7 +323,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                             <>
                               <span 
                                 className={
-                                  `flex-1 text-[13px] font-medium transition-all cursor-pointer ${item.checked ? 'line-through text-gray-400' : 'text-gray-900'}`
+                                  `flex-1 text-sm md:text-[13px] py-1 font-medium transition-all cursor-pointer ${item.checked ? 'line-through text-gray-400' : 'text-gray-900'}`
                                 }
                                 onClick={() => startEditing(item, displayQty)}
                               >
@@ -335,20 +335,20 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                                 {item.baseItem}
                               </span>
                               <button
-                                className="bg-gray-900 text-white hover:bg-gray-800 transition-all p-1 rounded"
+                                className="bg-gray-900 text-white hover:bg-gray-800 transition-all p-1.5 rounded"
                                 onClick={() => moveItemsToShopping([item])}
                                 aria-label="Add to Shopping"
                               >
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                 </svg>
                               </button>
                               <button
-                                className="text-gray-400 hover:text-red-500 transition-all p-0.5"
+                                className="text-gray-400 hover:text-red-500 transition-all p-1"
                                 onClick={() => removeItem(item.id)}
                                 aria-label="Remove"
                               >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                               </button>
@@ -361,7 +361,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                 ) : (
                   groupedItems.map(([category, catItems]) => (
                     <div key={category} className="space-y-1">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-1">
+                    <h3 className="text-[11px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 px-1 pt-1">
                       {category}
                     </h3>
                     <ul className="grid gap-0.5">
@@ -390,21 +390,21 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                         }
 
                         return (
-                          <li key={item.id} className="flex items-center gap-3 p-1 group hover:bg-gray-50 rounded-lg transition-colors">
+                          <li key={item.id} className="flex items-center gap-4 p-1.5 group hover:bg-gray-50 rounded-lg transition-colors">
                             <div className="relative flex items-center justify-center">
                               <input
                                 type="checkbox"
                                 checked={item.checked}
                                 onChange={() => toggleItem(item.id)}
-                                className="peer appearance-none w-[18px] h-[18px] border-2 border-gray-200 rounded-[3px] checked:bg-gray-900 checked:border-gray-900 transition-all cursor-pointer"
+                                className="peer appearance-none w-5 h-5 border-2 border-gray-200 rounded-[4px] checked:bg-gray-900 checked:border-gray-900 transition-all cursor-pointer"
                               />
-                              <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                              <svg className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                               </svg>
                             </div>
                             {editingId === item.id ? (
                               <input
-                                className="flex-1 text-[13px] font-medium bg-white border border-gray-200 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-gray-900/50"
+                                className="flex-1 text-base md:text-[13px] font-medium bg-white border border-gray-200 rounded px-1 group-hover:px-2 py-1 outline-none focus:ring-1 focus:ring-gray-900/50 transition-all font-sans"
                                 value={editValue}
                                 onChange={e => setEditValue(e.target.value)}
                                 onBlur={() => saveEdit(item.id)}
@@ -418,7 +418,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                               <>
                                 <span 
                                   className={
-                                    `flex-1 text-[13px] font-medium transition-all cursor-pointer ${item.checked ? 'line-through text-gray-400' : 'text-gray-900'}`
+                                    `flex-1 text-sm md:text-[13px] py-1 font-medium transition-all cursor-pointer ${item.checked ? 'line-through text-gray-400' : 'text-gray-900'}`
                                   }
                                   onClick={() => startEditing(item, displayQty)}
                                 >
@@ -430,11 +430,11 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
                                   {item.baseItem}
                                 </span>
                                 <button
-                                  className="text-gray-400 hover:text-red-500 transition-all p-0.5"
+                                  className="text-gray-400 hover:text-red-500 transition-all p-1"
                                   onClick={() => removeItem(item.id)}
                                   aria-label="Remove"
                                 >
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                   </svg>
                                 </button>
@@ -452,7 +452,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
           )}
         </div>
 
-        <div className="pt-2 border-t border-gray-100 mt-auto space-y-2">
+        <div className="pt-3 border-t border-gray-100 mt-auto space-y-3">
           <form
             onSubmit={e => {
               e.preventDefault();
@@ -461,7 +461,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
             className="flex gap-2"
           >
             <input
-              className="flex-1 border border-gray-200 rounded-xl px-4 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900/50 bg-gray-50/50"
+              className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900/50 bg-gray-50/50 transition-all"
               placeholder="Add item..."
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -469,16 +469,16 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
             />
             <button
               type="submit"
-              className="bg-gray-900 text-white px-5 py-1.5 rounded-xl text-xs font-bold hover:bg-gray-800 transition-colors shadow-sm"
+              className="bg-gray-900 text-white px-5 py-2 rounded-xl text-sm md:text-xs font-bold hover:bg-gray-800 transition-colors shadow-sm"
             >
               Add
             </button>
           </form>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pb-1">
             <button
               type="button"
-              className="text-gray-400 hover:text-red-500 px-1 py-1 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center whitespace-nowrap"
+              className="text-gray-400 hover:text-red-500 px-1 py-1 text-xs md:text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center whitespace-nowrap"
               onClick={clearList}
               disabled={currentList.length === 0}
               title="Clear All"
@@ -486,7 +486,7 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
               Clear All
             </button>
             {currentList.length > 0 && (
-              <span className="text-[10px] font-black text-gray-400 tabular-nums uppercase tracking-widest px-1">
+              <span className="text-xs md:text-[10px] font-black text-gray-400 tabular-nums uppercase tracking-widest px-1">
                 {currentList.filter(i => i.checked).length} / {currentList.length}
               </span>
             )}
