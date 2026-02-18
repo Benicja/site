@@ -202,6 +202,8 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         const query = normalize(searchInput.value.trim());
         let hasResults = false;
 
+        // Determine which items should be shown/hidden
+        const itemsToUpdate: Array<{item: HTMLElement, shouldShow: boolean}> = [];
 
         recipeItems.forEach(item => {
           const title = normalize(item.getAttribute('data-title') || '');
@@ -220,11 +222,31 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
           let matchesHearted = !showHeartedOnly || isHearted;
 
           const shouldShow = matchesSearch && matchesCategory && matchesHearted;
-          item.hidden = !shouldShow;
+          itemsToUpdate.push({item, shouldShow});
           if (shouldShow) {
             hasResults = true;
           }
         });
+
+        // Stagger visibility updates across frames in small batches
+        const BATCH_SIZE = 8; // Process 8 items per frame
+        let batchIndex = 0;
+
+        const processBatch = () => {
+          const endIndex = Math.min(batchIndex + BATCH_SIZE, itemsToUpdate.length);
+          for (let i = batchIndex; i < endIndex; i++) {
+            const {item, shouldShow} = itemsToUpdate[i];
+            item.hidden = !shouldShow;
+          }
+          batchIndex = endIndex;
+
+          if (batchIndex < itemsToUpdate.length) {
+            requestAnimationFrame(processBatch);
+          }
+        };
+
+        // Start the batch processing
+        processBatch();
 
         if (hasResults) {
           noResults.classList.add('hidden');
