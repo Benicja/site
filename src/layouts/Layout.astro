@@ -361,7 +361,7 @@ if (resolveAuth) {
       });
 
       // Recipe Image Cache Helper (IndexedDB)
-      window.recipeImageCache = {
+      (window as any).recipeImageCache = {
         DB_NAME: 'recipe-image-cache',
         STORE_NAME: 'images',
         async getDB() {

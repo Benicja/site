@@ -508,9 +508,9 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
           }
           img.src = data.featured_image;
           
-          if (window.recipeImageCache) {
-            window.recipeImageCache.get(data.featured_image).then(cachedUrl => {
-              if (cachedUrl) img.src = cachedUrl;
+          if ((window as any).recipeImageCache) {
+            (window as any).recipeImageCache.get(data.featured_image).then((cachedUrl: string | null) => {
+              if (img && cachedUrl) (img as HTMLImageElement).src = cachedUrl;
             });
           }
         } else {
@@ -747,9 +747,9 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
               imageUrlInput.value = recipe.featured_image;
               imagePreview.src = recipe.featured_image;
               
-              if (window.recipeImageCache) {
-                window.recipeImageCache.get(recipe.featured_image).then(cachedUrl => {
-                  if (cachedUrl) imagePreview.src = cachedUrl;
+              if ( (window as any).recipeImageCache ) {
+                (window as any).recipeImageCache.get(recipe.featured_image).then((cachedUrl: string | null) => {
+                  if (imagePreview && cachedUrl) (imagePreview as HTMLImageElement).src = cachedUrl;
                 });
               }
 
@@ -975,8 +975,8 @@ const activeUsers = (approvedUsers as ApprovedUser[]) || [];
                 featuredImageUrl = uploadResult.url;
                 
                 // Cache the image locally for immediate showing before build
-                if (window.recipeImageCache) {
-                  window.recipeImageCache.save(featuredImageUrl, editForm._uploadedImageFile);
+                if ((window as any).recipeImageCache) {
+                  (window as any).recipeImageCache.save(featuredImageUrl, editForm._uploadedImageFile);
                 }
 
                 // Update recipe with the image URL

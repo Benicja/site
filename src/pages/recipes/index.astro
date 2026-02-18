@@ -368,8 +368,8 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
           (img as HTMLImageElement).alt = data.title;
           
           // Try loading from IndexedDB if it was recently added
-          if (window.recipeImageCache) {
-            window.recipeImageCache.get(data.featured_image).then(cachedUrl => {
+          if ( (window as any).recipeImageCache ) {
+            (window as any).recipeImageCache.get(data.featured_image).then((cachedUrl: string | null) => {
               if (cachedUrl) (img as HTMLImageElement).src = cachedUrl;
             });
           }
@@ -393,7 +393,6 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         const grid = document.getElementById('recipes-grid');
         const currentItems = document.querySelectorAll('.recipe-item') as NodeListOf<HTMLElement>;
         const existingSlugs = new Set();
-        let hasHydrated = false;
 
         // Hydrate existing cards
         currentItems.forEach(item => {
@@ -415,7 +414,6 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
             }
 
             hydrateCardElement(item, slug, data);
-            hasHydrated = true;
           } catch (e) {}
         });
 
@@ -436,7 +434,6 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
                     const newItem = template.cloneNode(true) as HTMLElement;
                     grid.prepend(newItem);
                     hydrateCardElement(newItem, slug, data);
-                    hasHydrated = true;
                   }
                 }
               } catch (e) {}
