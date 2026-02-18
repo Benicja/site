@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { Notification } from '../lib/notifications';
 
 export default function NotificationStack() {

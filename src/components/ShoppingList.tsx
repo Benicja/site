@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   type ShoppingItem, 
   CATEGORY_ORDER, 
-  normalizeIngredient, 
   aggregateIngredients,
   formatQuantity,
   shouldHideAmount

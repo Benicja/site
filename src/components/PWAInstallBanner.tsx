@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function PWAInstallBanner() {
   const [showBanner, setShowBanner] = useState(false);
@@ -96,7 +96,7 @@ export default function PWAInstallBanner() {
       <div className="flex items-center gap-2">
         <button 
           onClick={handleInstallClick}
-          className="bg-gray-900 text-white px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm hover:bg-gray-800 transition-colors whitespace-nowrap"
+          className="bg-gray-900 text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest shadow-sm hover:bg-gray-800 transition-colors whitespace-nowrap"
         >
           {platform === 'ios' ? 'Show How' : 'Install'}
         </button>

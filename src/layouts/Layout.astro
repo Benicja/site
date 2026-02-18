@@ -105,7 +105,7 @@ if (resolveAuth) {
       };
 
       // Save scroll tracking
-      let saveScrollTimeout: any;
+      let saveScrollTimeout;
       if (window.location.pathname === '/recipes') {
         const saveScrollData = () => {
           clearTimeout(saveScrollTimeout);
@@ -156,7 +156,7 @@ if (resolveAuth) {
       };
 
       // Scroll to recipe card or fallback to saved Y position
-      const restoreScrollPosition = async (recipeSlug?: string | null, fallbackY?: number) => {
+      const restoreScrollPosition = async (recipeSlug, fallbackY) => {
         await waitForImagesLoaded();
         
         // Small delay for layout to settle
@@ -204,7 +204,7 @@ if (resolveAuth) {
       };
 
       // Listen for navigation from recipe back to recipes
-      document.addEventListener('astro:before-preparation', (e: any) => {
+      document.addEventListener('astro:before-preparation', (e) => {
         const fromRecipe = window.location.pathname.startsWith('/recipes/') && window.location.pathname !== '/recipes';
         
         if (fromRecipe) {
@@ -618,8 +618,8 @@ if (resolveAuth) {
       
       @media (min-width: 768px) {
         .shopping-list-widget-container {
-          bottom: 2rem;
-          right: 2rem;
+          bottom: 0.75rem;
+          right: 0.75rem;
         }
       }
     </style>

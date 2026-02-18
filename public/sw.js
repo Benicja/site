@@ -1,4 +1,4 @@
 // Minimal Service Worker for PWA
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', () => {
   // Simple fetch observer for PWA compliance
 });

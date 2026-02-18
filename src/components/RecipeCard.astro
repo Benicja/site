@@ -250,7 +250,7 @@ const totalTime = data.prep_time + data.cook_time;
       if ((link as any)._navigationHandled) return;
       (link as any)._navigationHandled = true;
       
-      link.addEventListener('click', (e) => {
+      link.addEventListener('click', () => {
         // Save scroll position before navigating
         if (window.location.pathname === '/recipes') {
           sessionStorage.setItem('recipesScrollY', window.scrollY.toString());

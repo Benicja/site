@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { toast } from '../lib/notifications';
 import { aggregateIngredients, type ShoppingItem } from '../lib/shopping';
 
