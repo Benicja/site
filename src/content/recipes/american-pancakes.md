@@ -1,5 +1,5 @@
 ---
-title: "American Pancakes TEST"
+title: "American Pancakes HI"
 description: "Fluffy pancakes."
 featured_image: "/images/recipes/pancakes.png"
 prep_time: 10
