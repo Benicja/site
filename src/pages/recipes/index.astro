@@ -250,7 +250,8 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
             const heartSvg = btn.querySelector('svg');
             heartSvg?.classList.remove('fill-current');
           }
-          updateGrid();
+          // Defer filtering to next frame for smooth button response
+          requestAnimationFrame(updateGrid);
           return;
         }
 
@@ -274,7 +275,8 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
           const heartSvg = btn.querySelector('svg');
           heartSvg?.classList.add('fill-current');
         }
-        updateGrid();
+        // Defer filtering to next frame for smooth button response
+        requestAnimationFrame(updateGrid);
       }
 
       // Bind directly to buttons

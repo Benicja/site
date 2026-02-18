@@ -287,18 +287,23 @@ const totalTime = data.prep_time + data.cook_time;
           }
         };
 
-        // 1. Optimistic Update
-        updateUI(nowHearted);
-        updateCount(nowHearted);
+        // 1. Optimistic Update - defer visual effects to next frame for instant button response
+        button.setAttribute('data-hearted', nowHearted.toString());
+        
+        // Defer UI updates and effects to next animation frame
+        requestAnimationFrame(() => {
+          updateUI(nowHearted);
+          updateCount(nowHearted);
 
-        // 2. Create burst effect when hearting
-        if (nowHearted) {
-          createHeartBurst(button as HTMLElement);
-          const title = card?.getAttribute('data-recipe-title') || 'Recipe';
-          showNotification(`Added ${title} to favourites`);
-        }
+          // Create burst effect when hearting
+          if (nowHearted) {
+            createHeartBurst(button as HTMLElement);
+            const title = card?.getAttribute('data-recipe-title') || 'Recipe';
+            showNotification(`Added ${title} to favourites`);
+          }
+        });
 
-        // 3. Background Request
+        // 2. Background Request
         try {
           const res = await fetch('/api/recipes/heart', {
             method: 'POST',
@@ -312,9 +317,11 @@ const totalTime = data.prep_time + data.cook_time;
           }
         } catch (err) {
           console.error('Hearting failed, reverting:', err);
-          // Revert UI on failure
-          updateUI(wasHearted);
-          updateCount(wasHearted);
+          // Revert UI on failure - defer to next frame as well for consistency
+          requestAnimationFrame(() => {
+            updateUI(wasHearted);
+            updateCount(wasHearted);
+          });
         }
       });
     });
