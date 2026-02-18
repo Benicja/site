@@ -46,6 +46,8 @@ const CATEGORY_MAPPING: Record<string, Category> = {
   'banana': 'Fruit & Veg',
   'avocado': 'Fruit & Veg',
   'lime': 'Fruit & Veg',
+  'grapes': 'Fruit & Veg',
+  'grape': 'Fruit & Veg',
   'herbs': 'Fruit & Veg',
   'thyme': 'Fruit & Veg',
   'rosemary': 'Fruit & Veg',
@@ -62,6 +64,7 @@ const CATEGORY_MAPPING: Record<string, Category> = {
   'scallion': 'Fruit & Veg',
   'orange': 'Fruit & Veg',
   'fruit': 'Fruit & Veg',
+  'bell pepper': 'Fruit & Veg',
 
   // Meat & Fish
   'beef': 'Meat & Fish',
@@ -158,7 +161,8 @@ const STRIP_WORDS = [
   'cold', 'softened', 'diced', 'chopped', 'fresh', 'dried', 'ground', 
   'minced', 'plain', 'grated', 'buffalo', 'cloves', 'paste', 'juice of', 'zest of',
   'handful', 'pinch', 'clove', 'head', 'stalk', 'bunch', 'whole', 'cubed', 'melted', 'beaten',
-  'cooked', 'unsalted', 'salted', 'chilled', 'room temperature', 'warm', 'hot', 'cold'
+  'cooked', 'unsalted', 'salted', 'chilled', 'room temperature', 'warm', 'hot', 'cold',
+  'roughly', 'finely', 'sliced', 'large', 'small', 'medium', 'tin', 'can'
 ];
 
 const STAPLE_UNITS = ['tsp', 'tbsp', 'pinch', 'handful', 'clove', 'cloves'];
@@ -275,7 +279,12 @@ export function normalizeIngredient(amountStr: string, itemStr: string) {
       const remaining = amountStr.replace(numPart, '').trim();
       const unitMatch = remaining.match(/[a-zA-Z]+/);
       if (unitMatch) {
-        unit = unitMatch[0].toLowerCase();
+        const potentialUnit = unitMatch[0].toLowerCase();
+        // Only treat as unit if it's not a descriptive/strip word (like "chopped", "fresh", etc)
+        // and not a common unit prefix like 'x'
+        if (!STRIP_WORDS.includes(potentialUnit) && potentialUnit !== 'x') {
+          unit = potentialUnit;
+        }
       }
     }
   }
@@ -285,10 +294,10 @@ export function normalizeIngredient(amountStr: string, itemStr: string) {
   const lowercaseBase = titleCased.toLowerCase();
   
   const pantryKeywords = [
-    'starch', 'powder', 'juice', 'vinegar', 'oil', 'salt', 'pepper', 'sugar', 'flour', 
+    'starch', 'powder', 'juice', 'vinegar', 'oil', 'salt', 'sugar', 'flour', 
     'honey', 'syrup', 'sauce', 'paste', 'stock', 'cumin', 'turmeric', 'paprika', 
     'cinnamon', 'mustard', 'spice', 'curry', 'yeast', 'extract', 'essence', 'saffron', 'gherkin',
-    'sweetcorn'
+    'sweetcorn', 'black pepper', 'ground pepper', 'white pepper', 'peppercorn'
   ];
 
   // Prioritize Frozen if the name contains "frozen"
@@ -297,7 +306,12 @@ export function normalizeIngredient(amountStr: string, itemStr: string) {
   } else if (pantryKeywords.some(pk => lowercaseBase.includes(pk))) {
     category = 'Pantry';
   } else {
-    for (const [key, cat] of Object.entries(CATEGORY_MAPPING)) {
+    // Check CATEGORY_MAPPING for specific matches
+    // Sort keys by length descending to match more specific things first (e.g. "Bell Pepper" before "Pepper")
+    const sortedMapping = Object.entries(CATEGORY_MAPPING)
+      .sort((a, b) => b[0].length - a[0].length);
+
+    for (const [key, cat] of sortedMapping) {
       if (lowercaseBase.includes(key)) {
         category = cat;
         break;
@@ -342,12 +356,8 @@ export function formatItemName(baseItem: string, amount: number | null, unit: st
     return `${displayAmount}${finalUnit} ${baseItem}`.trim();
   }
   
-  // No unit? Use "x" prefix if > 1
-  if (displayAmount !== '1') {
-    return `x${displayAmount} ${baseItem}`;
-  }
-  
-  return baseItem;
+  // No unit? Use "x" prefix (always include, e.g. "x1 Bell Pepper")
+  return `x${displayAmount} ${baseItem}`;
 }
 
 function itemsAreEqual(name1: string, name2: string): boolean {

@@ -50,7 +50,7 @@ const totalTime = data.prep_time + data.cook_time;
     <div class="absolute top-4 left-4 z-20 flex items-center gap-2 md:flex">
       <AddToShoppingListIconButton ingredients={data.ingredients} className="w-8 h-8" />
       <a 
-        href={`/recipes?category=${data.category}`}
+        href={`/recipes?category=${data.category.toLowerCase()}`}
         class="hidden md:inline-block category-tag px-3 py-1 bg-white border border-gray-200 text-[10px] font-bold uppercase tracking-widest text-gray-900 rounded-full hover:bg-gray-50 transition-colors cursor-pointer select-none"
         data-category={data.category}
       >
@@ -69,7 +69,7 @@ const totalTime = data.prep_time + data.cook_time;
           </a>
         </h3>
         <a 
-          href={`/recipes?category=${data.category}`}
+          href={`/recipes?category=${data.category.toLowerCase()}`}
           class="md:hidden category-tag px-3 py-1 bg-white border border-gray-200 text-[10px] font-bold uppercase tracking-widest text-gray-900 rounded-full hover:bg-gray-50 transition-colors cursor-pointer select-none"
           data-category={data.category}
         >

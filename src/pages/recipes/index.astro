@@ -110,7 +110,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
             {user && (
               <button 
                 type="button"
-                class="filter-btn px-4 py-1.5 rounded-full border border-gray-200 bg-white text-[10px] font-bold uppercase tracking-widest text-gray-600 transition-all duration-100 select-none flex items-center gap-2 data-[active=true]:bg-red-50 data-[active=true]:text-red-700 data-[active=true]:border-red-900 [&:not([data-active=true])]:hover:text-gray-900 [&:not([data-active=true])]:hover:border-gray-400"
+                class="filter-btn px-4 py-1.5 rounded-full border border-gray-200 bg-white text-[10px] font-bold uppercase tracking-widest text-gray-600 transition-all duration-100 select-none flex items-center gap-2 data-[active=true]:bg-gray-50 data-[active=true]:text-gray-950 data-[active=true]:border-gray-950 [&:not([data-active=true])]:hover:text-gray-900 [&:not([data-active=true])]:hover:border-gray-400"
                 data-filter="hearted"
                 data-active="false"
               >
@@ -287,15 +287,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
         updateGrid();
       }
 
-      // Handle Category/Hearted Buttons (delegated)
-      filterGroup?.addEventListener('click', (event) => {
-        const rawTarget = event.target as HTMLElement | null;
-        const btn = rawTarget?.closest('.filter-btn') as HTMLElement | null;
-        if (!btn) return;
-        handleFilterClick(btn);
-      });
-
-      // Fallback: bind directly to buttons (guards against delegation issues)
+      // Bind directly to buttons
       filterBtns.forEach(btn => {
         if (btn.getAttribute('data-inited') === 'true') return;
         btn.setAttribute('data-inited', 'true');
@@ -312,7 +304,7 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 
       // Check URL for initial category
       const urlParams = new URLSearchParams(window.location.search);
-      const initialCat = urlParams.get('category');
+      const initialCat = urlParams.get('category')?.toLowerCase();
       if (initialCat) {
         const targetBtn = Array.from(filterBtns).find(b => b.getAttribute('data-value') === initialCat);
         if (targetBtn) (targetBtn as HTMLElement).click();

@@ -53,18 +53,18 @@ export default function ShoppingList({ open, onClose }: { open: boolean; onClose
       // Populate default utility items if empty
       if (loaded.length === 0) {
         const defaultItems = [
-          { amount: '', item: 'Grapes' },
-          { amount: '6', item: 'Bell Peppers' },
-          { amount: '', item: 'Broccoli' },
-          { amount: '', item: 'Greek Yoghurt' },
-          { amount: '', item: 'Toilet Paper' },
-          { amount: '', item: 'Shower Gel' },
-          { amount: '', item: 'Protein Oats' },
-          { amount: '', item: 'Deodorant' },
-          { amount: '', item: 'Hand Soap' },
-          { amount: '', item: 'Toothpaste' },
-          { amount: '', item: 'Kitchen Towel' },
-          { amount: '', item: 'Sweetcorn' }
+          { amount: '1', item: 'Grapes' },
+          { amount: '1', item: 'Bell Pepper' },
+          { amount: '1', item: 'Broccoli' },
+          { amount: '1', item: 'Greek Yoghurt' },
+          { amount: '1', item: 'Toilet Paper' },
+          { amount: '1', item: 'Shower Gel' },
+          { amount: '1', item: 'Protein Oats' },
+          { amount: '1', item: 'Deodorant' },
+          { amount: '1', item: 'Hand Soap' },
+          { amount: '1', item: 'Toothpaste' },
+          { amount: '1', item: 'Kitchen Towel' },
+          { amount: '1', item: 'Sweetcorn' }
         ];
         const populated = aggregateIngredients([], defaultItems);
         setUtilityItems(populated);
