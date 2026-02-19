@@ -13,6 +13,7 @@ export const GET: APIRoute = async ({ url, cookies, redirect }) => {
 
   // PRAGMATIC CHECK: If we already have a session, maybe this is a double-tap/refresh
   // This happens in some browsers (like Chrome) when they pre-fetch or double-request URLs
+  // Check this FIRST before validating OAuth parameters to handle accidental requests
   const existingSessionId = cookies.get(SESSION_COOKIE)?.value;
   if (existingSessionId && !isLinkingPhotos) {
     const user = await getUserFromSession(existingSessionId);
@@ -27,13 +28,27 @@ export const GET: APIRoute = async ({ url, cookies, redirect }) => {
   }
 
   // Validate request integrity
-  if (!code || !state || !storedState || !storedVerifier || state !== storedState) {
-    console.error('Auth Validation Failed:', { 
+  // Check for missing OAuth parameters - if linking photos mode, we require all params
+  // If NOT linking photos, missing params on an accidental callback is OK since we checked session above
+  if (!code || !state || !storedState || !storedVerifier) {
+    console.error('Auth Validation Failed: Missing OAuth parameters', { 
       hasCode: !!code, 
       hasState: !!state, 
       hasStoredState: !!storedState, 
-      hasStoredVerifier: !!storedVerifier,
-      stateMatch: state === storedState 
+      hasStoredVerifier: !!storedVerifier
+    });
+    // If linking photos, this is a required flow failure
+    if (isLinkingPhotos) {
+      return new Response('Invalid request parameters', { status: 400 });
+    }
+    // For normal auth, this might be an accidental request - redirect to gallery
+    return redirect('/gallery');
+  }
+
+  if (state !== storedState) {
+    console.error('Auth Validation Failed: State mismatch', { 
+      state,
+      storedState
     });
     return new Response('Invalid request parameters', { status: 400 });
   }
