@@ -22,6 +22,10 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
   const [error, setError] = useState('');
   const [charCount, setCharCount] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [heartCounts, setHeartCounts] = useState<Record<string, number>>({});
+  const [userHearts, setUserHearts] = useState<Set<string>>(new Set());
+  const [heartingId, setHeartingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const userComment = comments.find(c => c.user_id === user?.id);
 
@@ -29,28 +33,40 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const response = await fetch(`/api/recipes/comments/${recipeId}`);
-        const data = await response.json();
-        if (data.success) {
-          setComments(data.comments);
+        const [commentsRes, heartsRes] = await Promise.all([
+          fetch(`/api/recipes/comments/${recipeId}`),
+          fetch(`/api/recipes/comments/hearts/${recipeId}`),
+        ]);
+
+        const commentsData = await commentsRes.json();
+        const heartsData = await heartsRes.json();
+
+        if (commentsData.success) {
+          setComments(commentsData.comments);
+        }
+
+        if (heartsData.success) {
+          setHeartCounts(heartsData.hearts);
+          // For now, we'll set this to empty - heart state will be tracked when user interacts
+          setUserHearts(new Set());
         }
       } catch (err) {
-        console.error('Failed to fetch comments:', err);
+        console.error('Failed to fetch comments or hearts:', err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchComments();
-  }, [recipeId]);
+  }, [recipeId, user?.id]);
 
   // Load existing comment into form
   useEffect(() => {
-    if (userComment) {
+    if (userComment && editingId !== userComment.id) {
       setContent(userComment.content);
       setCharCount(userComment.content.length);
     }
-  }, [userComment]);
+  }, [userComment?.id, editingId]);
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
@@ -110,6 +126,7 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
 
       setContent('');
       setCharCount(0);
+      setEditingId(null);
     } catch (err) {
       setError('Failed to post comment');
       console.error(err);
@@ -147,6 +164,72 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
     }
   };
 
+  const handleHeart = async (commentId: string) => {
+    if (!user) {
+      window.location.href = '/auth/login';
+      return;
+    }
+
+    setHeartingId(commentId);
+    const isHearted = userHearts.has(commentId);
+
+    try {
+      const response = await fetch('/api/recipes/comments/heart', {
+        method: isHearted ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comment_id: commentId }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        // If already hearted and trying to heart again, just update UI
+        if (data.alreadyHearted) {
+          setUserHearts(new Set(userHearts).add(commentId));
+          setHeartCounts(prev => ({
+            ...prev,
+            [commentId]: (prev[commentId] || 0) + 1,
+          }));
+        }
+        return;
+      }
+
+      // Update heart state
+      const newUserHearts = new Set(userHearts);
+      if (isHearted) {
+        newUserHearts.delete(commentId);
+        setHeartCounts(prev => ({
+          ...prev,
+          [commentId]: Math.max(0, (prev[commentId] || 0) - 1),
+        }));
+      } else {
+        newUserHearts.add(commentId);
+        setHeartCounts(prev => ({
+          ...prev,
+          [commentId]: (prev[commentId] || 0) + 1,
+        }));
+      }
+      setUserHearts(newUserHearts);
+    } catch (err) {
+      console.error('Failed to heart/unheart comment:', err);
+    } finally {
+      setHeartingId(null);
+    }
+  };
+
+  const handleEditStart = (comment: Comment) => {
+    setEditingId(comment.id);
+    setContent(comment.content);
+    setCharCount(comment.content.length);
+  };
+
+  const handleEditCancel = () => {
+    setEditingId(null);
+    setContent('');
+    setCharCount(0);
+  };
+
   if (loading) {
     return (
       <section className="comment-section">
@@ -160,48 +243,62 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
     <section className="comment-section">
       <h2 className="comment-title">Comments</h2>
 
-      {/* Comment Form */}
-      <div className="comment-form-container">
-        <form onSubmit={handleSubmit} className="comment-form">
-          <div className="form-group">
-            <label htmlFor="comment-input" className="form-label">
-              {user ? 'Your Comment' : 'Sign in to comment'}
-            </label>
-            <textarea
-              id="comment-input"
-              className="comment-input"
-              placeholder={user ? 'Share your thoughts about this recipe...' : 'Sign in to share your thoughts...'}
-              value={content}
-              onChange={handleContentChange}
-              disabled={!user || submitting}
-              rows={3}
-            />
-            <div className="form-footer">
-              <span className={`char-count ${charCount > 475 ? 'warning' : ''}`}>
-                {charCount}/500
-              </span>
-              <button
-                type="submit"
-                className={`submit-btn ${submitting ? 'loading' : ''}`}
-                disabled={submitting || !user || !content.trim()}
-              >
-                {submitting ? 'Posting...' : userComment ? 'Update Comment' : 'Post Comment'}
-              </button>
+      {/* Comment Form - Only show if no existing comment or editing */}
+      {(!userComment || editingId === userComment.id) && (
+        <div className="comment-form-container">
+          <form onSubmit={handleSubmit} className="comment-form">
+            <div className="form-group">
+              <label htmlFor="comment-input" className="form-label">
+                {editingId ? 'Edit Your Comment' : user ? 'Your Comment' : 'Sign in to comment'}
+              </label>
+              <textarea
+                id="comment-input"
+                className="comment-input"
+                placeholder={user ? 'Share your thoughts about this recipe...' : 'Sign in to share your thoughts...'}
+                value={content}
+                onChange={handleContentChange}
+                disabled={!user || submitting}
+                rows={3}
+              />
+              <div className="form-footer">
+                <span className={`char-count ${charCount > 475 ? 'warning' : ''}`}>
+                  {charCount}/500
+                </span>
+                <div className="form-buttons">
+                  <button
+                    type="submit"
+                    className={`submit-btn ${submitting ? 'loading' : ''}`}
+                    disabled={submitting || !user || !content.trim()}
+                  >
+                    {submitting ? 'Posting...' : editingId ? 'Update Comment' : 'Post Comment'}
+                  </button>
+                  {editingId && (
+                    <button
+                      type="button"
+                      className="cancel-btn"
+                      onClick={handleEditCancel}
+                      disabled={submitting}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
 
-          {error && <div className="error-message">{error}</div>}
-        </form>
+            {error && <div className="error-message">{error}</div>}
+          </form>
 
-        {!user && (
-          <button
-            onClick={() => (window.location.href = '/auth/login')}
-            className="login-prompt"
-          >
-            Sign in with Google to comment
-          </button>
-        )}
-      </div>
+          {!user && (
+            <button
+              onClick={() => (window.location.href = '/auth/login')}
+              className="login-prompt"
+            >
+              Sign in with Google to comment
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Comments List */}
       <div className="comments-list">
@@ -231,17 +328,43 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
                   </div>
                 </div>
 
-                {/* Delete button for owner or admin */}
-                {(user?.id === comment.user_id || isAdmin) && (
+                <div className="comment-action-buttons">
                   <button
-                    onClick={() => handleDelete(comment.id)}
-                    disabled={deletingId === comment.id}
-                    className="delete-btn"
-                    title="Delete comment"
+                    onClick={() => handleHeart(comment.id)}
+                    disabled={heartingId === comment.id}
+                    className={`heart-btn ${userHearts.has(comment.id) ? 'hearted' : ''}`}
+                    title={userHearts.has(comment.id) ? 'Unlike' : 'Like'}
                   >
-                    ×
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="heart-icon">
+                      <path d="M12 20.364l-7.682-7.682a4.5 4.5 0 016.364-6.364L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364z" />
+                    </svg>
+                    <span className="heart-count">{heartCounts[comment.id] || 0}</span>
                   </button>
-                )}
+
+                  {/* Edit button for owner */}
+                  {user?.id === comment.user_id && (
+                    <button
+                      onClick={() => handleEditStart(comment)}
+                      disabled={editingId === comment.id}
+                      className="edit-btn"
+                      title="Edit comment"
+                    >
+                      ✎
+                    </button>
+                  )}
+
+                  {/* Delete button for owner or admin */}
+                  {(user?.id === comment.user_id || isAdmin) && (
+                    <button
+                      onClick={() => handleDelete(comment.id)}
+                      disabled={deletingId === comment.id}
+                      className="delete-btn"
+                      title="Delete comment"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
               </div>
 
               <p className="comment-content">{comment.content}</p>

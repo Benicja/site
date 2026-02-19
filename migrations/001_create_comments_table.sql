@@ -77,3 +77,41 @@ CREATE TRIGGER comments_update_timestamp
   BEFORE UPDATE ON comments
   FOR EACH ROW
   EXECUTE FUNCTION update_comments_timestamp();
+-- Create comment_hearts table
+CREATE TABLE IF NOT EXISTS comment_hearts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  
+  -- Prevent duplicate hearts
+  UNIQUE(comment_id, user_id)
+);
+
+-- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_comment_hearts_comment_id ON comment_hearts(comment_id);
+CREATE INDEX IF NOT EXISTS idx_comment_hearts_user_id ON comment_hearts(user_id);
+
+-- Enable RLS on comment_hearts
+ALTER TABLE comment_hearts ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Anyone can read hearts (public)
+CREATE POLICY "Comment hearts are publicly readable"
+  ON comment_hearts FOR SELECT
+  USING (true);
+
+-- Policy: Authenticated users can insert their own hearts
+CREATE POLICY "Users can heart comments"
+  ON comment_hearts FOR INSERT
+  WITH CHECK (
+    auth.role() = 'authenticated' AND
+    user_id = auth.uid()::text
+  );
+
+-- Policy: Users can remove their own hearts
+CREATE POLICY "Users can unheart comments"
+  ON comment_hearts FOR DELETE
+  USING (
+    auth.role() = 'authenticated' AND
+    user_id = auth.uid()::text
+  );

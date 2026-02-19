@@ -538,8 +538,8 @@ const pageDesc = isGhost ? 'Pending deploy' : data.description;
   /* Comment Section Styles */
   .comment-section {
     max-width: 1200px;
-    margin: 0 auto;
-    padding: 48px 20px;
+    margin: -20px auto 0;
+    padding: 0 20px 48px;
     background: #f3f4f6;
   }
 
@@ -607,6 +607,12 @@ const pageDesc = isGhost ? 'Pending deploy' : data.description;
     justify-content: space-between;
     align-items: center;
     margin-top: 8px;
+    gap: 12px;
+  }
+
+  .form-buttons {
+    display: flex;
+    gap: 8px;
   }
 
   .char-count {
@@ -643,6 +649,28 @@ const pageDesc = isGhost ? 'Pending deploy' : data.description;
 
   .submit-btn.loading {
     opacity: 0.7;
+  }
+
+  .cancel-btn {
+    padding: 10px 20px;
+    background: #e2e8f0;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .cancel-btn:hover:not(:disabled) {
+    background: #cbd5e1;
+    color: #1f2937;
+  }
+
+  .cancel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .error-message {
@@ -732,6 +760,53 @@ const pageDesc = isGhost ? 'Pending deploy' : data.description;
     margin: 0;
   }
 
+  .comment-action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .heart-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: transparent;
+    color: #cbd5e1;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .heart-btn:hover:not(:disabled) {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: #fee2e2;
+  }
+
+  .heart-btn.hearted {
+    background: #fee2e2;
+    color: #ef4444;
+    border-color: #ef4444;
+  }
+
+  .heart-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .heart-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .heart-count {
+    font-size: 0.8rem;
+  }
+
   .delete-btn {
     width: 32px;
     height: 32px;
@@ -753,6 +828,31 @@ const pageDesc = isGhost ? 'Pending deploy' : data.description;
   }
 
   .delete-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .edit-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: #e0f2fe;
+    color: #0369a1;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .edit-btn:hover:not(:disabled) {
+    background: #bae6fd;
+    color: #0c4a6e;
+  }
+
+  .edit-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
