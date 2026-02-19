@@ -47,3 +47,13 @@ export interface UserSession {
   last_login: string;
   created_at: string;
 }
+export interface Comment {
+  id: string;
+  recipe_id: string;
+  user_id: string;
+  user_name: string;
+  user_image: string | null;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}

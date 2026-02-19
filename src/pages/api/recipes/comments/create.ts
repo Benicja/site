@@ -1,0 +1,105 @@
+import type { APIRoute } from 'astro';
+import { SESSION_COOKIE, getUserFromSession } from '../../../../lib/auth';
+import { supabaseAdmin } from '../../../../lib/supabase';
+
+export const POST: APIRoute = async (context) => {
+  try {
+    // Check authentication
+    const sessionId = context.cookies.get(SESSION_COOKIE)?.value;
+    if (!sessionId) {
+      return new Response(
+        JSON.stringify({ error: 'Not authenticated' }),
+        { status: 401 }
+      );
+    }
+
+    const user = await getUserFromSession(sessionId);
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: 'Session invalid' }),
+        { status: 401 }
+      );
+    }
+
+    // Parse request body
+    const body = await context.request.json();
+    const { recipe_id, content } = body;
+
+    // Validate inputs
+    if (!recipe_id || typeof recipe_id !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid recipe_id' }),
+        { status: 400 }
+      );
+    }
+
+    if (!content || typeof content !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Content is required' }),
+        { status: 400 }
+      );
+    }
+
+    // Trim and validate length (max 500 chars)
+    const trimmedContent = content.trim();
+    if (trimmedContent.length === 0 || trimmedContent.length > 500) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Comment must be between 1 and 500 characters' 
+        }),
+        { status: 400 }
+      );
+    }
+
+    // Check for spam: limit comments per user per recipe per hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: recentComments } = await supabaseAdmin
+      .from('comments')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('recipe_id', recipe_id)
+      .gt('created_at', oneHourAgo)
+      .limit(1);
+
+    // If they already commented in the last hour, this is an update, not a new comment
+    const existingComment = recentComments && recentComments.length > 0;
+
+    // Upsert comment (insert or update if exists)
+    const { data, error } = await supabaseAdmin
+      .from('comments')
+      .upsert({
+        recipe_id,
+        user_id: user.id,
+        user_name: user.user_name || user.user_email,
+        user_image: user.user_avatar || null,
+        content: trimmedContent
+      }, {
+        onConflict: 'recipe_id,user_id'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Comment creation error:', error);
+      return new Response(
+        JSON.stringify({ error: 'Failed to create comment' }),
+        { status: 500 }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        comment: data,
+        isUpdate: existingComment 
+      }),
+      { status: 200 }
+    );
+  } catch (err) {
+    console.error('Comment API error:', err);
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500 }
+    );
+  }
+};
