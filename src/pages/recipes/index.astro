@@ -193,7 +193,6 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 
       let activeCategory: string | null = null;
       let showHeartedOnly = false;
-      let updateGridTimeout: number | null = null;
 
       const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
@@ -202,59 +201,38 @@ const formatCategories = (value: unknown): string => (Array.isArray(value) ? val
 
         const query = normalize(searchInput.value.trim());
         let hasResults = false;
-        const itemsArray = Array.from(recipeItems);
-        const batchSize = 15; // Process 15 items per frame
-        let currentIndex = 0;
 
-        const processBatch = () => {
-          const endIndex = Math.min(currentIndex + batchSize, itemsArray.length);
-          
-          for (let i = currentIndex; i < endIndex; i++) {
-            const item = itemsArray[i];
-            const title = normalize(item.getAttribute('data-title') || '');
-            const category = item.getAttribute('data-category');
-            const isHearted = item.getAttribute('data-hearted') === 'true';
 
-            let matchesSearch = title.includes(query);
-            let matchesCategory = true;
-            if (activeCategory) {
-              const categories = (category || '')
-                .split(',')
-                .map(cat => cat.trim().toLowerCase())
-                .filter(Boolean);
-              matchesCategory = categories.includes(activeCategory);
-            }
-            let matchesHearted = !showHeartedOnly || isHearted;
+        recipeItems.forEach(item => {
+          const title = normalize(item.getAttribute('data-title') || '');
+          const category = item.getAttribute('data-category');
+          const isHearted = item.getAttribute('data-hearted') === 'true';
 
-            const shouldShow = matchesSearch && matchesCategory && matchesHearted;
-            item.hidden = !shouldShow;
-            if (shouldShow) {
-              hasResults = true;
-            }
+          let matchesSearch = title.includes(query);
+          let matchesCategory = true;
+          if (activeCategory) {
+            const categories = (category || '')
+              .split(',')
+              .map(cat => cat.trim().toLowerCase())
+              .filter(Boolean);
+            matchesCategory = categories.includes(activeCategory);
           }
+          let matchesHearted = !showHeartedOnly || isHearted;
 
-          currentIndex = endIndex;
-
-          // If there are more items, schedule the next batch
-          if (currentIndex < itemsArray.length) {
-            if (updateGridTimeout !== null) {
-              cancelAnimationFrame(updateGridTimeout);
-            }
-            updateGridTimeout = requestAnimationFrame(processBatch) as unknown as number;
-          } else {
-            // All items processed, update no-results visibility
-            if (hasResults) {
-              noResults.classList.add('hidden');
-              recipesGrid.classList.remove('hidden');
-            } else {
-              noResults.classList.remove('hidden');
-              recipesGrid.classList.add('hidden');
-            }
-            updateGridTimeout = null;
+          const shouldShow = matchesSearch && matchesCategory && matchesHearted;
+          item.hidden = !shouldShow;
+          if (shouldShow) {
+            hasResults = true;
           }
-        };
+        });
 
-        processBatch();
+        if (hasResults) {
+          noResults.classList.add('hidden');
+          recipesGrid.classList.remove('hidden');
+        } else {
+          noResults.classList.remove('hidden');
+          recipesGrid.classList.add('hidden');
+        }
       }
 
       function handleFilterClick(btn: HTMLElement) {
