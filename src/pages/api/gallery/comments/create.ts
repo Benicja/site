@@ -2,7 +2,6 @@ import type { APIRoute } from 'astro';
 import { SESSION_COOKIE, getUserFromSession } from '../../../../lib/auth';
 import { supabaseAdmin } from '../../../../lib/supabase';
 import { sendCommentNotificationEmail } from '../../../../lib/email';
-import { getCollection } from 'astro:content';
 
 export const POST: APIRoute = async (context) => {
   try {
@@ -25,12 +24,12 @@ export const POST: APIRoute = async (context) => {
 
     // Parse request body
     const body = await context.request.json();
-    const { recipe_id, content } = body;
+    const { album_id, content } = body;
 
     // Validate inputs
-    if (!recipe_id || typeof recipe_id !== 'string') {
+    if (!album_id || typeof album_id !== 'string') {
       return new Response(
-        JSON.stringify({ error: 'Invalid recipe_id' }),
+        JSON.stringify({ error: 'Invalid album_id' }),
         { status: 400 }
       );
     }
@@ -53,12 +52,12 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
-    // Check if user already has a comment on this recipe
+    // Check if user already has a comment on this album
     const { data: existingCommentData } = await supabaseAdmin
       .from('comments')
       .select('id')
       .eq('user_id', user.id)
-      .eq('recipe_id', recipe_id)
+      .eq('album_id', album_id)
       .maybeSingle();
 
     // If they already have a comment, this is an update, not a new comment
@@ -74,18 +73,19 @@ export const POST: APIRoute = async (context) => {
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id)
-        .eq('recipe_id', recipe_id)
+        .eq('album_id', album_id)
         .select()
         .single();
       data = result.data;
       error = result.error;
+      if (error) console.error('Album comment UPDATE error:', error);
     } else {
       // Insert new comment
       const result = await supabaseAdmin
         .from('comments')
         .insert({
-          recipe_id,
-          album_id: null,
+          album_id,
+          recipe_id: null,
           user_id: user.id,
           user_name: user.user_name || user.user_email,
           user_image: user.user_avatar || null,
@@ -95,43 +95,48 @@ export const POST: APIRoute = async (context) => {
         .single();
       data = result.data;
       error = result.error;
+      if (error) console.error('Album comment INSERT error:', error);
     }
 
     if (error) {
-      console.error('Comment creation error:', error);
+      console.error('Full comment creation error:', error);
       return new Response(
-        JSON.stringify({ error: 'Failed to create comment' }),
+        JSON.stringify({ error: 'Failed to create comment', details: error?.message }),
         { status: 500 }
       );
     }
 
     // Send email notification if this is a NEW comment (not an update)
     if (!existingComment) {
-      // Check if user has previously deleted a comment on this recipe
+      // Check if user has previously deleted a comment on this album
       const { data: previouslyDeleted } = await supabaseAdmin
         .from('comments')
         .select('id')
         .eq('user_id', user.id)
-        .eq('recipe_id', recipe_id)
+        .eq('album_id', album_id)
         .not('deleted_at', 'is', null)
         .limit(1);
 
-      // Only send email if user hasn't previously deleted a comment on this recipe
+      // Only send email if user hasn't previously deleted a comment on this album
       const hasPreviouslyDeleted = previouslyDeleted && previouslyDeleted.length > 0;
       
       if (!hasPreviouslyDeleted) {
         try {
-          // Get recipe name from collection
-          const recipes = await getCollection('recipes');
-          const recipe = recipes.find(r => r.id === recipe_id);
-          const recipeName = recipe?.data.title || recipe_id;
-          
+          // Fetch album title for the email
+          const { data: albumData } = await supabaseAdmin
+            .from('gallery_albums')
+            .select('title')
+            .eq('google_album_id', album_id)
+            .single();
+
+          const albumTitle = albumData?.title || `Album`;
+
           await sendCommentNotificationEmail({
-            recipeName,
+            recipeName: albumTitle,
             userName: user.user_name || user.user_email,
             userEmail: user.user_email,
             commentContent: trimmedContent,
-            recipeSlug: recipe_id
+            recipeSlug: `gallery/${album_id}`
           });
         } catch (emailErr) {
           // Log but don't fail the request

@@ -1,41 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import type { Comment } from '../lib/supabase';
+import React from 'react';
+import CommentSection from './CommentSection';
 
-interface User {
-  id: string;
-  user_email: string;
-  user_name?: string;
-  user_avatar?: string;
-}
-
-interface Props {
-  recipeId: string;
-  user: User | null;
+interface AlbumCommentSectionProps {
+  albumId: string;
+  user: { id: string; user_email: string; user_name?: string; user_avatar?: string } | null;
   isAdmin?: boolean;
 }
 
-export default function CommentSection({ recipeId, user, isAdmin = false }: Props) {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [content, setContent] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [charCount, setCharCount] = useState(0);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [heartCounts, setHeartCounts] = useState<Record<string, number>>({});
-  const [userHearts, setUserHearts] = useState<Set<string>>(new Set());
-  const [heartingId, setHeartingId] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
+export default function AlbumCommentSection({ albumId, user, isAdmin = false }: AlbumCommentSectionProps) {
+  // Reuse CommentSection but modify the API endpoints for albums
+  // We need to override the fetch calls to use gallery/comments endpoints
+  
+  const [comments, setComments] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [content, setContent] = React.useState('');
+  const [submitting, setSubmitting] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const [charCount, setCharCount] = React.useState(0);
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const [heartCounts, setHeartCounts] = React.useState<Record<string, number>>({});
+  const [userHearts, setUserHearts] = React.useState<Set<string>>(new Set());
+  const [heartingId, setHeartingId] = React.useState<string | null>(null);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
 
   const userComment = comments.find(c => c.user_id === user?.id);
 
   // Fetch comments on mount
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchComments = async () => {
       try {
         const [commentsRes, heartsRes] = await Promise.all([
-          fetch(`/api/recipes/comments/${recipeId}`),
-          fetch(`/api/recipes/comments/hearts/${recipeId}`),
+          fetch(`/api/gallery/comments/${albumId}`),
+          fetch(`/api/gallery/comments/hearts/${albumId}`),
         ]);
 
         const commentsData = await commentsRes.json();
@@ -72,10 +68,10 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
     };
 
     fetchComments();
-  }, [recipeId, user?.id]);
+  }, [albumId, user?.id]);
 
   // Load existing comment into form
-  useEffect(() => {
+  React.useEffect(() => {
     if (userComment && editingId !== userComment.id) {
       setContent(userComment.content);
       setCharCount(userComment.content.length);
@@ -94,14 +90,11 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check authentication
     if (!user) {
-      // Redirect to login
       window.location.href = '/auth/login';
       return;
     }
 
-    // Validate content
     if (!content.trim()) {
       setError('Comment cannot be empty');
       return;
@@ -111,13 +104,13 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
     setError('');
 
     try {
-      const response = await fetch('/api/recipes/comments/create', {
+      const response = await fetch('/api/gallery/comments/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          recipe_id: recipeId,
+          album_id: albumId,
           content: content.trim(),
         }),
       });
@@ -129,12 +122,9 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
         return;
       }
 
-      // Update comments list
       if (userComment) {
-        // Update existing comment
         setComments(comments.map(c => c.id === userComment.id ? data.comment : c));
       } else {
-        // Add new comment
         setComments([data.comment, ...comments]);
       }
 
@@ -155,7 +145,7 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
     setDeletingId(commentId);
 
     try {
-      const response = await fetch(`/api/recipes/comments/delete/${commentId}`, {
+      const response = await fetch(`/api/gallery/comments/delete/${commentId}`, {
         method: 'DELETE',
       });
 
@@ -188,7 +178,7 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
     const isHearted = userHearts.has(commentId);
 
     try {
-      const response = await fetch('/api/recipes/comments/heart', {
+      const response = await fetch('/api/gallery/comments/heart', {
         method: isHearted ? 'DELETE' : 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -198,7 +188,6 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
 
       if (!response.ok) {
         const data = await response.json();
-        // If already hearted and trying to heart again, just update UI
         if (data.alreadyHearted) {
           setUserHearts(new Set(userHearts).add(commentId));
           setHeartCounts(prev => ({
@@ -209,7 +198,6 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
         return;
       }
 
-      // Update heart state
       const newUserHearts = new Set(userHearts);
       if (isHearted) {
         newUserHearts.delete(commentId);
@@ -232,7 +220,7 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
     }
   };
 
-  const handleEditStart = (comment: Comment) => {
+  const handleEditStart = (comment: any) => {
     setEditingId(comment.id);
     setContent(comment.content);
     setCharCount(comment.content.length);
@@ -257,7 +245,6 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
     <section className="comment-section">
       <h2 className="comment-title">Comments</h2>
 
-      {/* Comment Form - Only show if no existing comment or editing */}
       {(!userComment || editingId === userComment.id) && (
         <div className="comment-form-container">
           <form onSubmit={handleSubmit} className="comment-form">
@@ -268,7 +255,7 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
               <textarea
                 id="comment-input"
                 className="comment-input"
-                placeholder={user ? 'Share your thoughts about this recipe...' : 'Sign in to share your thoughts...'}
+                placeholder={user ? 'Share your thoughts about this album...' : 'Sign in to share your thoughts...'}
                 value={content}
                 onChange={handleContentChange}
                 disabled={!user || submitting}
@@ -314,7 +301,6 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
         </div>
       )}
 
-      {/* Comments List */}
       <div className="comments-list">
         {comments.length === 0 ? (
           <p className="no-comments">No comments yet. Be the first to share your thoughts!</p>
@@ -355,7 +341,6 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
                     <span className="heart-count">{heartCounts[comment.id] || 0}</span>
                   </button>
 
-                  {/* Edit button for owner */}
                   {user?.id === comment.user_id && (
                     <button
                       onClick={() => handleEditStart(comment)}
@@ -367,7 +352,6 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
                     </button>
                   )}
 
-                  {/* Delete button for owner or admin */}
                   {(user?.id === comment.user_id || isAdmin) && (
                     <button
                       onClick={() => handleDelete(comment.id)}
