@@ -50,18 +50,18 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
           
           // Restore user's hearts from the server
           if (user && heartsData.heartsByUser) {
-            const userHeartsSet = new Set<string>();
+            const userHeartsObj: Record<string, boolean> = {};
             
             // Check which comments this user has hearted
             for (const [commentId, userIds] of Object.entries(heartsData.heartsByUser)) {
               if (Array.isArray(userIds) && userIds.includes(user.id)) {
-                userHeartsSet.add(commentId);
+                userHeartsObj[commentId] = true;
               }
             }
             
-            setUserHearts(userHeartsSet);
+            setUserHearts(userHeartsObj);
           } else {
-            setUserHearts(new Set());
+            setUserHearts({});
           }
         }
       } catch (err) {
@@ -185,18 +185,18 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
     }
 
     setHeartingId(commentId);
-    const isHearted = userHearts.has(commentId);
+    const isHearted = !!userHearts[commentId];
 
     // Optimistic update - immediately update UI
-    const newUserHearts = new Set(userHearts);
+    const newUserHearts = { ...userHearts };
     if (isHearted) {
-      newUserHearts.delete(commentId);
+      delete newUserHearts[commentId];
       setHeartCounts(prev => ({
         ...prev,
         [commentId]: Math.max(0, (prev[commentId] || 0) - 1),
       }));
     } else {
-      newUserHearts.add(commentId);
+      newUserHearts[commentId] = true;
       setHeartCounts(prev => ({
         ...prev,
         [commentId]: (prev[commentId] || 0) + 1,
@@ -216,11 +216,11 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
       if (!response.ok) {
         // Revert optimistic update on error
         const data = await response.json();
-        const revertHearts = new Set(userHearts);
+        const revertHearts = { ...newUserHearts };
         if (isHearted) {
-          revertHearts.add(commentId);
+          revertHearts[commentId] = true;
         } else {
-          revertHearts.delete(commentId);
+          delete revertHearts[commentId];
         }
         setUserHearts(revertHearts);
         setHeartCounts(prev => ({
@@ -232,11 +232,11 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
     } catch (err) {
       console.error('Failed to heart/unheart comment:', err);
       // Revert optimistic update on error
-      const revertHearts = new Set(userHearts);
+      const revertHearts = { ...newUserHearts };
       if (isHearted) {
-        revertHearts.add(commentId);
+        revertHearts[commentId] = true;
       } else {
-        revertHearts.delete(commentId);
+        delete revertHearts[commentId];
       }
       setUserHearts(revertHearts);
       setHeartCounts(prev => ({
@@ -362,8 +362,8 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
                   <button
                     onClick={() => handleHeart(comment.id)}
                     disabled={heartingId === comment.id}
-                    className={`heart-btn ${userHearts.has(comment.id) ? 'hearted' : ''}`}
-                    title={userHearts.has(comment.id) ? 'Unlike' : 'Like'}
+                    className={`heart-btn ${userHearts[comment.id] ? 'hearted' : ''}`}
+                    title={userHearts[comment.id] ? 'Unlike' : 'Like'}
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" className="heart-icon">
                       <path d="M12 20.364l-7.682-7.682a4.5 4.5 0 016.364-6.364L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364z" />
