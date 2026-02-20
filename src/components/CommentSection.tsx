@@ -23,7 +23,7 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
   const [charCount, setCharCount] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [heartCounts, setHeartCounts] = useState<Record<string, number>>({});
-  const [userHearts, setUserHearts] = useState<Set<string>>(new Set());
+  const [userHearts, setUserHearts] = useState<Record<string, boolean>>({});
   const [heartingId, setHeartingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
 
