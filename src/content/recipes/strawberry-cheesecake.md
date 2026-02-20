@@ -7,8 +7,8 @@ cook_time: 60
 publishDate: 2026-02-07
 category: "Dessert"
 authors:
-  - name: "Ben H"
-    image: "https://lh3.googleusercontent.com/a/ACg8ocK8hIEg4KAKIVrtuo8lR1lXQKPE8fUTCgHyppX8VJBom07zIuI=s96-c"
+  - name: "Alicja N"
+    image: "https://lh3.googleusercontent.com/a-/ALV-UjXh67hsAAqAPrFCwJVZWCKK90svXyEzVuUlDoW9ZvssUsySfToTwQ=s289-p-k-rw-no"
 ingredients:
   - item: "Digestive biscuits"
     amount: "12"

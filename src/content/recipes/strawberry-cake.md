@@ -9,8 +9,6 @@ category: Dessert
 authors:
   - name: Matthew
     image: https://lh3.googleusercontent.com/a/ACg8ocKLQWCdmDvg7XXmskbXatwFohSRUmpTmtuss-BCK_MHLPixCK8=s96-c
-  - name: Ben H
-    image: https://lh3.googleusercontent.com/a/ACg8ocK8hIEg4KAKIVrtuo8lR1lXQKPE8fUTCgHyppX8VJBom07zIuI=s96-c
 ingredients:
   - item: Love
     amount: "5"
