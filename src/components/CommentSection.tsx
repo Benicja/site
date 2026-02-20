@@ -13,7 +13,34 @@ interface Props {
   user: User | null;
   isAdmin?: boolean;
 }
+// Separate component for heart button to ensure proper re-rendering on mobile
+const HeartButton = React.memo(({
+  commentId,
+  isHearted,
+  heartCount,
+  heartingId,
+  onHeart,
+}: {
+  commentId: string;
+  isHearted: boolean;
+  heartCount: number;
+  heartingId: string | null;
+  onHeart: (id: string) => void;
+}) => (
+  <button
+    onClick={() => onHeart(commentId)}
+    disabled={heartingId === commentId}
+    className={`heart-btn ${isHearted ? 'hearted' : ''}`}
+    title={isHearted ? 'Unlike' : 'Like'}
+  >
+    <svg viewBox="0 0 24 24" fill="currentColor" className="heart-icon">
+      <path d="M12 20.364l-7.682-7.682a4.5 4.5 0 016.364-6.364L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364z" />
+    </svg>
+    <span className="heart-count">{heartCount}</span>
+  </button>
+));
 
+HeartButton.displayName = 'HeartButton';
 export default function CommentSection({ recipeId, user, isAdmin = false }: Props) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -359,17 +386,13 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
                 </div>
 
                 <div className="comment-action-buttons">
-                  <button
-                    onClick={() => handleHeart(comment.id)}
-                    disabled={heartingId === comment.id}
-                    className={`heart-btn ${userHearts[comment.id] ? 'hearted' : ''}`}
-                    title={userHearts[comment.id] ? 'Unlike' : 'Like'}
-                  >
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="heart-icon">
-                      <path d="M12 20.364l-7.682-7.682a4.5 4.5 0 016.364-6.364L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364z" />
-                    </svg>
-                    <span className="heart-count">{heartCounts[comment.id] || 0}</span>
-                  </button>
+                  <HeartButton
+                    commentId={comment.id}
+                    isHearted={!!userHearts[comment.id]}
+                    heartCount={heartCounts[comment.id] || 0}
+                    heartingId={heartingId}
+                    onHeart={handleHeart}
+                  />
 
                   {/* Edit button for owner */}
                   {user?.id === comment.user_id && (
