@@ -197,12 +197,11 @@ export async function sendCommentNotificationEmail(input: {
   userName: string;
   userEmail: string;
   commentContent: string;
-  recipeSlug: string;
+  recipeUrl: string;
 }) {
   const client = getClient();
   if (!client || !validateAdminEmail()) return;
 
-  const recipeUrl = `${siteUrl}/recipes/${input.recipeSlug}`;
   const safeName = escapeHtml(input.userName);
   const safeEmail = escapeHtml(input.userEmail);
   const safeRecipeName = escapeHtml(input.recipeName);
@@ -215,11 +214,11 @@ export async function sendCommentNotificationEmail(input: {
       <div style="background:#f5f5f5; padding:16px; border-radius:8px; margin:16px 0;">
         <p style="margin:0; white-space: pre-wrap;">${safeCommentContent}</p>
       </div>
-      <p><a href="${recipeUrl}">View on Benicja's Kitchen</a></p>
+      <p><a href="${input.recipeUrl}">View on Benicja's Kitchen</a></p>
     </div>
   `;
 
-  const text = `New Comment on ${input.recipeName}\n\nFrom: ${input.userName} (${input.userEmail})\n\n${input.commentContent}\n\nView on Benicja's Kitchen: ${recipeUrl}`;
+  const text = `New Comment on ${input.recipeName}\n\nFrom: ${input.userName} (${input.userEmail})\n\n${input.commentContent}\n\nView on Benicja's Kitchen: ${input.recipeUrl}`;
 
   try {
     const { data, error } = await client.emails.send({

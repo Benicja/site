@@ -130,13 +130,14 @@ export const POST: APIRoute = async (context) => {
             .single();
 
           const albumTitle = albumData?.title || `Album`;
+          const albumUrl = `${new URL(context.request.url).origin}/gallery/${album_id}`;
 
           await sendCommentNotificationEmail({
             recipeName: albumTitle,
             userName: user.user_name || user.user_email,
             userEmail: user.user_email,
             commentContent: trimmedContent,
-            recipeSlug: `gallery/${album_id}`
+            recipeUrl: albumUrl
           });
         } catch (emailErr) {
           // Log but don't fail the request

@@ -125,13 +125,14 @@ export const POST: APIRoute = async (context) => {
           const recipes = await getCollection('recipes');
           const recipe = recipes.find(r => r.id === recipe_id);
           const recipeName = recipe?.data.title || recipe_id;
+          const recipeUrl = `${new URL(context.request.url).origin}/recipes/${recipe_id}`;
           
           await sendCommentNotificationEmail({
             recipeName,
             userName: user.user_name || user.user_email,
             userEmail: user.user_email,
             commentContent: trimmedContent,
-            recipeSlug: recipe_id
+            recipeUrl
           });
         } catch (emailErr) {
           // Log but don't fail the request
