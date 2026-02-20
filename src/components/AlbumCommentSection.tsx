@@ -28,6 +28,7 @@ const HeartButton = ({
     style={{
       color: isHearted ? '#ef4444' : '#64748b',
       borderColor: isHearted ? '#ef4444' : '#cbd5e1',
+      backgroundColor: isHearted ? '#fee2e2' : 'transparent',
     }}
     title={isHearted ? 'Unlike' : 'Like'}
   >
