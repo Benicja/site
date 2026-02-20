@@ -1,6 +1,6 @@
 ---
 title: Strawberry Cake
-description: Help
+description: Help 👾
 featured_image: /images/recipes/strawberry-cake-1771597939983-0557bf92.jpg
 prep_time: 12
 cook_time: 20
@@ -9,6 +9,8 @@ category: Dessert
 authors:
   - name: Matthew
     image: https://lh3.googleusercontent.com/a/ACg8ocKLQWCdmDvg7XXmskbXatwFohSRUmpTmtuss-BCK_MHLPixCK8=s96-c
+  - name: Ben H
+    image: https://lh3.googleusercontent.com/a/ACg8ocK8hIEg4KAKIVrtuo8lR1lXQKPE8fUTCgHyppX8VJBom07zIuI=s96-c
 ingredients:
   - item: Love
     amount: "5"
