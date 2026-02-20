@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { SESSION_COOKIE, getUserFromSession, isUserAdmin } from '../../../../../lib/auth';
+import { SESSION_COOKIE, getUserFromSession } from '../../../../../lib/auth';
 import { supabaseAdmin } from '../../../../../lib/supabase';
 
 export const DELETE: APIRoute = async (context) => {
@@ -21,20 +21,19 @@ export const DELETE: APIRoute = async (context) => {
       );
     }
 
-    // Get comment ID from params
-    const comment_id = context.params.comment_id;
-    if (!comment_id || typeof comment_id !== 'string') {
+    const commentId = context.params.id;
+    if (!commentId) {
       return new Response(
-        JSON.stringify({ error: 'Invalid comment_id' }),
+        JSON.stringify({ error: 'Invalid comment ID' }),
         { status: 400 }
       );
     }
 
-    // Fetch the comment to check ownership
+    // Get the comment to verify ownership
     const { data: comment, error: fetchError } = await supabaseAdmin
       .from('comments')
-      .select('user_id')
-      .eq('id', comment_id)
+      .select('*')
+      .eq('id', commentId)
       .single();
 
     if (fetchError || !comment) {
@@ -44,25 +43,31 @@ export const DELETE: APIRoute = async (context) => {
       );
     }
 
-    // Check if user is the owner or an admin
+    // Check if user owns the comment or is admin
+    const { data: approvedUser } = await supabaseAdmin
+      .from('approved_users')
+      .select('role')
+      .eq('email', user.user_email)
+      .single();
+
+    const isAdmin = approvedUser?.role === 'admin';
     const isOwner = comment.user_id === user.id;
-    const isAdmin = await isUserAdmin(sessionId);
 
     if (!isOwner && !isAdmin) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Not authorized to delete this comment' }),
         { status: 403 }
       );
     }
 
-    // Soft delete the comment by setting deleted_at timestamp
+    // Mark comment as deleted (soft delete)
     const { error: deleteError } = await supabaseAdmin
       .from('comments')
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', comment_id);
+      .eq('id', commentId);
 
     if (deleteError) {
-      console.error('Delete comment error:', deleteError);
+      console.error('Comment deletion error:', deleteError);
       return new Response(
         JSON.stringify({ error: 'Failed to delete comment' }),
         { status: 500 }
@@ -74,7 +79,7 @@ export const DELETE: APIRoute = async (context) => {
       { status: 200 }
     );
   } catch (err) {
-    console.error('Delete comment API error:', err);
+    console.error('Comment delete API error:', err);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500 }

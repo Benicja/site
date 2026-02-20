@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 
 const resendApiKey = import.meta.env.RESEND_API_KEY;
 const resendFrom = import.meta.env.RESEND_FROM || 'no-reply@benicja.com';
-const adminEmail = import.meta.env.ADMIN_REQUESTS_EMAIL || 'ben.horton.finance+benicja@gmail.com'; 
+const adminEmail = import.meta.env.ADMIN_REQUESTS_EMAIL || '';
 const siteUrl = (import.meta.env.SITE_URL || 'https://benicja.com').replace(/\/$/, '');
 const portalUrl = `${siteUrl}/portal`;
 const requestActionSecret = import.meta.env.REQUEST_ACTION_SECRET;
@@ -14,6 +14,14 @@ function getClient() {
   }
 
   return new Resend(resendApiKey);
+}
+
+function validateAdminEmail() {
+  if (!adminEmail) {
+    console.error('Missing ADMIN_REQUESTS_EMAIL or ADMIN_EMAIL environment variable');
+    return false;
+  }
+  return true;
 }
 
 function escapeHtml(value: string) {
@@ -32,7 +40,7 @@ export async function sendAdminAccessRequestEmail(input: {
   requestToken: string;
 }) {
   const client = getClient();
-  if (!client) return;
+  if (!client || !validateAdminEmail()) return;
 
   const safeMessage = input.message?.trim() ? escapeHtml(input.message) : 'No message provided.';
   const safeName = escapeHtml(input.fullName);
@@ -181,5 +189,53 @@ export async function sendUserAccessDecisionEmail(input: {
     }
   } catch (err) {
     console.error('Fatal error calling Resend for user notification:', err);
+  }
+}
+
+export async function sendCommentNotificationEmail(input: {
+  recipeName: string;
+  userName: string;
+  userEmail: string;
+  commentContent: string;
+  recipeSlug: string;
+}) {
+  const client = getClient();
+  if (!client || !validateAdminEmail()) return;
+
+  const recipeUrl = `${siteUrl}/recipes/${input.recipeSlug}`;
+  const safeName = escapeHtml(input.userName);
+  const safeEmail = escapeHtml(input.userEmail);
+  const safeRecipeName = escapeHtml(input.recipeName);
+  const safeCommentContent = escapeHtml(input.commentContent);
+
+  const html = `
+    <div style="font-family:Arial,Helvetica,sans-serif; line-height:1.6; color:#111;">
+      <h2>New Comment on ${safeRecipeName}</h2>
+      <p><strong>From:</strong> ${safeName} (${safeEmail})</p>
+      <div style="background:#f5f5f5; padding:16px; border-radius:8px; margin:16px 0;">
+        <p style="margin:0; white-space: pre-wrap;">${safeCommentContent}</p>
+      </div>
+      <p><a href="${recipeUrl}">View on Benicja's Kitchen</a></p>
+    </div>
+  `;
+
+  const text = `New Comment on ${input.recipeName}\n\nFrom: ${input.userName} (${input.userEmail})\n\n${input.commentContent}\n\nView on Benicja's Kitchen: ${recipeUrl}`;
+
+  try {
+    const { data, error } = await client.emails.send({
+      from: resendFrom,
+      to: adminEmail,
+      subject: `New comment on "${input.recipeName}"`,
+      html,
+      text
+    });
+
+    if (error) {
+      console.error('Resend error sending comment notification:', error);
+    } else {
+      console.log('Comment notification email sent successfully');
+    }
+  } catch (err) {
+    console.error('Fatal error calling Resend for comment notification:', err);
   }
 }

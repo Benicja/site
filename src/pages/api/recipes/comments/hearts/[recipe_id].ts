@@ -30,16 +30,23 @@ export const GET: APIRoute = async (context) => {
       );
     }
 
-    // Aggregate hearts by comment_id
+    // Aggregate hearts by comment_id and track user_ids
     const heartCounts: Record<string, number> = {};
+    const heartsByUser: Record<string, string[]> = {}; // comment_id -> [user_ids]
+    
     for (const heart of data || []) {
       heartCounts[heart.comment_id] = (heartCounts[heart.comment_id] || 0) + 1;
+      if (!heartsByUser[heart.comment_id]) {
+        heartsByUser[heart.comment_id] = [];
+      }
+      heartsByUser[heart.comment_id].push(heart.user_id);
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        hearts: heartCounts
+        hearts: heartCounts,
+        heartsByUser: heartsByUser
       }),
       { status: 200 }
     );

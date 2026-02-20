@@ -47,8 +47,22 @@ export default function CommentSection({ recipeId, user, isAdmin = false }: Prop
 
         if (heartsData.success) {
           setHeartCounts(heartsData.hearts);
-          // For now, we'll set this to empty - heart state will be tracked when user interacts
-          setUserHearts(new Set());
+          
+          // Restore user's hearts from the server
+          if (user && heartsData.heartsByUser) {
+            const userHeartsSet = new Set<string>();
+            
+            // Check which comments this user has hearted
+            for (const [commentId, userIds] of Object.entries(heartsData.heartsByUser)) {
+              if (userIds.includes(user.id)) {
+                userHeartsSet.add(commentId);
+              }
+            }
+            
+            setUserHearts(userHeartsSet);
+          } else {
+            setUserHearts(new Set());
+          }
         }
       } catch (err) {
         console.error('Failed to fetch comments or hearts:', err);

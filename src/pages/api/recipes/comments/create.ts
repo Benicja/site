@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { SESSION_COOKIE, getUserFromSession } from '../../../../lib/auth';
 import { supabaseAdmin } from '../../../../lib/supabase';
+import { sendCommentNotificationEmail } from '../../../../lib/email';
+import { getCollection } from 'astro:content';
 
 export const POST: APIRoute = async (context) => {
   try {
@@ -85,6 +87,41 @@ export const POST: APIRoute = async (context) => {
         JSON.stringify({ error: 'Failed to create comment' }),
         { status: 500 }
       );
+    }
+
+    // Send email notification if this is a NEW comment (not an update)
+    if (!existingComment) {
+      // Check if user has previously deleted a comment on this recipe
+      const { data: previouslyDeleted } = await supabaseAdmin
+        .from('comments')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('recipe_id', recipe_id)
+        .not('deleted_at', 'is', null)
+        .limit(1);
+
+      // Only send email if user hasn't previously deleted a comment on this recipe
+      const hasPreviouslyDeleted = previouslyDeleted && previouslyDeleted.length > 0;
+      
+      if (!hasPreviouslyDeleted) {
+        try {
+          // Get recipe name from collection
+          const recipes = await getCollection('recipes');
+          const recipe = recipes.find(r => r.id === recipe_id);
+          const recipeName = recipe?.data.title || recipe_id;
+          
+          await sendCommentNotificationEmail({
+            recipeName,
+            userName: user.user_name || user.user_email,
+            userEmail: user.user_email,
+            commentContent: trimmedContent,
+            recipeSlug: recipe_id
+          });
+        } catch (emailErr) {
+          // Log but don't fail the request
+          console.error('Failed to send comment notification email:', emailErr);
+        }
+      }
     }
 
     return new Response(

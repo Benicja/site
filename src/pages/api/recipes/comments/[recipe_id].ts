@@ -13,11 +13,26 @@ export const GET: APIRoute = async (context) => {
     }
 
     // Fetch all comments for the recipe, ordered by newest first
-    const { data, error } = await supabase
+    // Try filtering for non-deleted comments, but fall back to all comments if column doesn't exist
+    let { data, error } = await supabase
       .from('comments')
       .select('*')
       .eq('recipe_id', recipe_id)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
+
+    // If the deleted_at column doesn't exist yet, fall back to fetching all comments
+    if (error && error.message.includes('deleted_at')) {
+      console.warn('deleted_at column does not exist yet, fetching all comments');
+      const fallback = await supabase
+        .from('comments')
+        .select('*')
+        .eq('recipe_id', recipe_id)
+        .order('created_at', { ascending: false });
+      
+      data = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) {
       console.error('Fetch comments error:', error);
