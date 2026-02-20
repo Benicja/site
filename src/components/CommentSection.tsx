@@ -13,8 +13,8 @@ interface Props {
   user: User | null;
   isAdmin?: boolean;
 }
-// Separate component for heart button to ensure proper re-rendering on mobile
-const HeartButton = React.memo(({
+// Separate component for heart button
+const HeartButton = ({
   commentId,
   isHearted,
   heartCount,
@@ -31,6 +31,10 @@ const HeartButton = React.memo(({
     onClick={() => onHeart(commentId)}
     disabled={heartingId === commentId}
     className={`heart-btn ${isHearted ? 'hearted' : ''}`}
+    style={{
+      color: isHearted ? '#ef4444' : '#64748b',
+      borderColor: isHearted ? '#ef4444' : '#cbd5e1',
+    }}
     title={isHearted ? 'Unlike' : 'Like'}
   >
     <svg viewBox="0 0 24 24" fill="currentColor" className="heart-icon">
@@ -38,9 +42,7 @@ const HeartButton = React.memo(({
     </svg>
     <span className="heart-count">{heartCount}</span>
   </button>
-));
-
-HeartButton.displayName = 'HeartButton';
+);
 export default function CommentSection({ recipeId, user, isAdmin = false }: Props) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
