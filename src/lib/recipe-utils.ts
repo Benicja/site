@@ -12,6 +12,7 @@ export interface RecipeData {
   instructions: Array<{ step: string }>;
   publishDate?: string;
   draft?: boolean;
+  authors?: Array<{ name: string; image?: string }>;
 }
 
 /**
@@ -27,6 +28,7 @@ export function buildRecipeFrontmatter(recipe: RecipeData): string {
     cook_time: recipe.cook_time || 0,
     ...(recipe.servings && { servings: recipe.servings }),
     category: recipe.category || 'Other',
+    ...(recipe.authors && recipe.authors.length > 0 && { authors: recipe.authors }),
     ingredients: recipe.ingredients || [],
     instructions: recipe.instructions || [],
     publishDate: recipe.publishDate || new Date().toISOString().split('T')[0],

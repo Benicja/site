@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
-import { isUserAdmin, SESSION_COOKIE } from '../../../lib/auth';
+import { isUserAdmin, SESSION_COOKIE, getUserFromSession } from '../../../lib/auth';
 import { readFromGitHub, commitToGitHub } from '../../../lib/github';
 import { buildRecipeFrontmatter, validateRecipeYAML } from '../../../lib/recipe-utils';
+import { parse } from 'yaml';
 import path from 'path';
 
 export const prerender = false;
@@ -16,6 +17,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   const isAdmin = await isUserAdmin(sessionId);
   if (!isAdmin) {
     return new Response(JSON.stringify({ error: 'Unauthorized: Admin role required' }), { status: 403 });
+  }
+
+  // Get current user info to add as author
+  const user = await getUserFromSession(sessionId);
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'User session not found' }), { status: 401 });
   }
 
   const body = await request.json();
@@ -69,16 +76,38 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 const originalFrontmatterLines = lines.slice(1, frontmatterEndLine);
     const bodyContent = lines.slice(frontmatterEndLine + 1).join('\n').trim();
 
-    // Extract publishDate and draft from original frontmatter
+    // Extract publishDate, draft, and authors from original frontmatter
     let publishDate: string | undefined;
     let draft: boolean | undefined;
+    let authors: Array<{ name: string; image?: string }> = [];
     
-    for (const line of originalFrontmatterLines) {
-      if (line.startsWith('publishDate:')) {
-        publishDate = line.replace('publishDate:', '').trim().replace(/^['"]|['"]$/g, '');
+    // Parse the frontmatter to extract authors array
+    try {
+      const frontmatterYaml = lines.slice(1, frontmatterEndLine).join('\n');
+      const parsed = parse(frontmatterYaml);
+      
+      if (parsed.publishDate) {
+        publishDate = parsed.publishDate;
       }
-      if (line.startsWith('draft:')) {
-        draft = line.includes('true');
+      if (parsed.draft !== undefined) {
+        draft = parsed.draft;
+      }
+      if (Array.isArray(parsed.authors)) {
+        authors = parsed.authors;
+      }
+    } catch (parseError) {
+      console.error('Failed to parse frontmatter YAML:', parseError);
+    }
+
+    // Add current user as author if not already present
+    const currentUserName = user?.user_name;
+    if (currentUserName) {
+      const authorExists = authors.some(author => author.name === currentUserName);
+      if (!authorExists) {
+        authors.push({
+          name: currentUserName,
+          ...(user?.user_avatar && { image: user.user_avatar })
+        });
       }
     }
 
@@ -94,7 +123,8 @@ const originalFrontmatterLines = lines.slice(1, frontmatterEndLine);
       ingredients: ingredients || [],
       instructions: instructions || [],
       publishDate: publishDate || new Date().toISOString().split('T')[0],
-      draft: draft
+      draft: draft,
+      authors: authors.length > 0 ? authors : undefined
     });
 
     // Reconstruct with body content

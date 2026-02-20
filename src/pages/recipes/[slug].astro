@@ -65,6 +65,31 @@ const pageDesc = isGhost ? 'Pending deploy' : data.description;
             <span class="hero-rating-count">{heartCount}</span>
             <span class="hero-rating-label">hearts</span>
           </div>
+          {data.authors && data.authors.length > 0 && (
+            <div class="hero-authors">
+              <span class="authors-label">By</span>
+              <div class="authors-list">
+                {data.authors.map((author, index) => (
+                  <div key={index} class="author-item">
+                    {author.image && (
+                      <img 
+                        src={author.image} 
+                        alt={author.name}
+                        class="author-image"
+                        title={author.name}
+                      />
+                    )}
+                    <span class="author-name">{author.name}</span>
+                    {index < data.authors.length - 1 && (
+                      <span class="author-separator">
+                        {index === data.authors.length - 2 ? ' & ' : ', '}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -347,6 +372,52 @@ const pageDesc = isGhost ? 'Pending deploy' : data.description;
     text-transform: uppercase;
     letter-spacing: 0.2em;
     color: #94a3b8;
+  }
+
+  .hero-authors {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .authors-label {
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .authors-list {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .author-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .author-image {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #cbd5e1;
+  }
+
+  .author-name {
+    font-size: 0.9rem;
+    color: #334155;
+    font-weight: 500;
+  }
+
+  .author-separator {
+    color: #94a3b8;
+    font-size: 0.9rem;
   }
 
   .hero-subtitle {

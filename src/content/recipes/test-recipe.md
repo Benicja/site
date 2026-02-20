@@ -6,6 +6,9 @@ prep_time: 111
 cook_time: 222
 servings: 333
 category: "Breakfast"
+authors:
+  - name: "Ben H"
+    image: "https://lh3.googleusercontent.com/a/ACg8ocK8hIEg4KAKIVrtuo8lR1lXQKPE8fUTCgHyppX8VJBom07zIuI=s96-c"
 
 ingredients:
   - item: "TEST RECIPE 1"

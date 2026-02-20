@@ -7,6 +7,9 @@ cook_time: 30
 servings: 18
 category: "Dessert"
 publishDate: 2026-01-31
+authors:
+  - name: "Ben H"
+    image: "https://lh3.googleusercontent.com/a/ACg8ocK8hIEg4KAKIVrtuo8lR1lXQKPE8fUTCgHyppX8VJBom07zIuI=s96-c"
 ingredients:
   - item: "Unsalted Butter, Cubed"
     amount: "200g"

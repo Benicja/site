@@ -7,6 +7,9 @@ cook_time: 12
 servings: 2
 publishDate: 2026-02-11
 category: "Breakfast"
+authors:
+  - name: "Ben H"
+    image: "https://lh3.googleusercontent.com/a/ACg8ocK8hIEg4KAKIVrtuo8lR1lXQKPE8fUTCgHyppX8VJBom07zIuI=s96-c"
 ingredients:
   - item: "Jumbo oats"
     amount: "2 cups"

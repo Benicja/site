@@ -6,6 +6,9 @@ prep_time: 25
 cook_time: 60
 publishDate: 2026-02-07
 category: "Dessert"
+authors:
+  - name: "Ben H"
+    image: "https://lh3.googleusercontent.com/a/ACg8ocK8hIEg4KAKIVrtuo8lR1lXQKPE8fUTCgHyppX8VJBom07zIuI=s96-c"
 ingredients:
   - item: "Digestive biscuits"
     amount: "12"

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { isUserAdmin, SESSION_COOKIE } from '../../../lib/auth';
+import { isUserAdmin, SESSION_COOKIE, getUserFromSession } from '../../../lib/auth';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { commitToGitHub, readFromGitHub } from '../../../lib/github';
 import { buildRecipeFrontmatter, validateRecipeYAML } from '../../../lib/recipe-utils';
@@ -48,6 +48,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   }
 
   try {
+    // Get user info to add as author
+    const user = await getUserFromSession(sessionId);
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'User session not found' }), { status: 401 });
+    }
+
     // Generate slug from title
     const slug = generateSlug(title);
     const recipePath = path.join('src', 'content', 'recipes', `${slug}.md`);
@@ -60,6 +66,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       // Not found, continue
     }
 
+    // Build authors array with current user
+    const authors = user.user_name ? [{ name: user.user_name, ...(user.user_avatar && { image: user.user_avatar }) }] : undefined;
+
     // Build frontmatter using proper YAML library
     const content = buildRecipeFrontmatter({
       title,
@@ -71,7 +80,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       category: category || 'Other',
       ingredients: ingredients || [],
       instructions: instructions || [],
-      publishDate: new Date().toISOString().split('T')[0]
+      publishDate: new Date().toISOString().split('T')[0],
+      authors
     });
 
     // Validate generated YAML before committing

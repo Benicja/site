@@ -7,6 +7,9 @@ cook_time: 25
 servings: 2
 category: "Dinner"
 publishDate: 2026-02-09
+authors:
+  - name: "Ben H"
+    image: "https://lh3.googleusercontent.com/a/ACg8ocK8hIEg4KAKIVrtuo8lR1lXQKPE8fUTCgHyppX8VJBom07zIuI=s96-c"
 ingredients:
   - item: "Onion"
     amount: "1"
