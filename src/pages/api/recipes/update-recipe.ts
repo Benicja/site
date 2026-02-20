@@ -73,7 +73,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         return new Response(JSON.stringify({ error: 'Invalid recipe format: missing closing delimiter' }), { status: 400 });
     }
 
-const originalFrontmatterLines = lines.slice(1, frontmatterEndLine);
     const bodyContent = lines.slice(frontmatterEndLine + 1).join('\n').trim();
 
     // Extract publishDate, draft, and authors from original frontmatter

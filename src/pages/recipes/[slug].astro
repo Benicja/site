@@ -30,7 +30,8 @@ const data = isGhost ? {
   servings: 0,
   featured_image: '',
   ingredients: [],
-  instructions: []
+  instructions: [],
+  authors: []
 } : recipe!.data;
 
 const pageTitle = isGhost ? 'New Recipe' : data.title;
@@ -69,8 +70,8 @@ const pageDesc = isGhost ? 'Pending deploy' : data.description;
             <div class="hero-authors">
               <span class="authors-label">By</span>
               <div class="authors-list">
-                {data.authors.map((author, index) => (
-                  <div key={index} class="author-item">
+                {data.authors.map((author: any, index: number) => (
+                  <div class="author-item">
                     {author.image && (
                       <img 
                         src={author.image} 
