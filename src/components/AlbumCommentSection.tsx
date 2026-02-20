@@ -177,6 +177,23 @@ export default function AlbumCommentSection({ albumId, user, isAdmin = false }: 
     setHeartingId(commentId);
     const isHearted = userHearts.has(commentId);
 
+    // Optimistic update - immediately update UI
+    const newUserHearts = new Set(userHearts);
+    if (isHearted) {
+      newUserHearts.delete(commentId);
+      setHeartCounts(prev => ({
+        ...prev,
+        [commentId]: Math.max(0, (prev[commentId] || 0) - 1),
+      }));
+    } else {
+      newUserHearts.add(commentId);
+      setHeartCounts(prev => ({
+        ...prev,
+        [commentId]: (prev[commentId] || 0) + 1,
+      }));
+    }
+    setUserHearts(newUserHearts);
+
     try {
       const response = await fetch('/api/gallery/comments/heart', {
         method: isHearted ? 'DELETE' : 'POST',
@@ -187,34 +204,35 @@ export default function AlbumCommentSection({ albumId, user, isAdmin = false }: 
       });
 
       if (!response.ok) {
+        // Revert optimistic update on error
         const data = await response.json();
-        if (data.alreadyHearted) {
-          setUserHearts(new Set(userHearts).add(commentId));
-          setHeartCounts(prev => ({
-            ...prev,
-            [commentId]: (prev[commentId] || 0) + 1,
-          }));
+        const revertHearts = new Set(userHearts);
+        if (isHearted) {
+          revertHearts.add(commentId);
+        } else {
+          revertHearts.delete(commentId);
         }
+        setUserHearts(revertHearts);
+        setHeartCounts(prev => ({
+          ...prev,
+          [commentId]: isHearted ? (prev[commentId] || 0) + 1 : Math.max(0, (prev[commentId] || 0) - 1),
+        }));
         return;
       }
-
-      const newUserHearts = new Set(userHearts);
-      if (isHearted) {
-        newUserHearts.delete(commentId);
-        setHeartCounts(prev => ({
-          ...prev,
-          [commentId]: Math.max(0, (prev[commentId] || 0) - 1),
-        }));
-      } else {
-        newUserHearts.add(commentId);
-        setHeartCounts(prev => ({
-          ...prev,
-          [commentId]: (prev[commentId] || 0) + 1,
-        }));
-      }
-      setUserHearts(newUserHearts);
     } catch (err) {
       console.error('Failed to heart/unheart comment:', err);
+      // Revert optimistic update on error
+      const revertHearts = new Set(userHearts);
+      if (isHearted) {
+        revertHearts.add(commentId);
+      } else {
+        revertHearts.delete(commentId);
+      }
+      setUserHearts(revertHearts);
+      setHeartCounts(prev => ({
+        ...prev,
+        [commentId]: isHearted ? (prev[commentId] || 0) + 1 : Math.max(0, (prev[commentId] || 0) - 1),
+      }));
     } finally {
       setHeartingId(null);
     }
