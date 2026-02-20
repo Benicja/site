@@ -1,6 +1,7 @@
 ---
 title: TEST
 description: TEST
+featured_image: /images/recipes/test-1771598784546-678aca32.jpg
 prep_time: 1
 cook_time: 1
 servings: 1
